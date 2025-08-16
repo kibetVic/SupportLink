@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SupportLink.Models;
-using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -47,31 +47,26 @@ namespace SupportLink.Controllers
         {
             if (ModelState.IsValid)
             {
-                // check if email already exists
                 if (_context.ApplicationUsers.Any(u => u.Email == model.Email))
                 {
                     ModelState.AddModelError("", "Email already registered!");
                     return View(model);
                 }
 
-                // check password confirmation
                 if (model.Password != model.confirmPassword)
                 {
                     ModelState.AddModelError("", "Passwords do not match!");
                     return View(model);
                 }
 
-                // hash password before saving
                 model.Password = HashPassword(model.Password);
                 model.confirmPassword = model.Password;
-
-                // set default role = Staff
                 model.Role = Role.Staff.ToString();
 
                 _context.ApplicationUsers.Add(model);
                 _context.SaveChanges();
 
-                // redirect to login instead of auto login
+                // ✅ After Register -> Login (not auto login)
                 return RedirectToAction("Login", "Account");
             }
 
@@ -84,19 +79,18 @@ namespace SupportLink.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            return View(new LoginViewModel()); // ensure model is sent
+            return View(new LoginViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
             string hashed = HashPassword(model.Password);
 
-            // Check by Email OR UserName
             var user = _context.ApplicationUsers
                 .FirstOrDefault(u =>
                     (u.UserName == model.LoginIdentifier || u.Email == model.LoginIdentifier)
@@ -104,11 +98,30 @@ namespace SupportLink.Controllers
 
             if (user != null)
             {
-                // Store session
-                HttpContext.Session.SetString("UserName", user.UserName);
-                HttpContext.Session.SetString("UserRole", user.Role);
+                // ✅ Build claims
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim(ClaimTypes.Email, user.Email)
+                };
 
-                // Redirect to Home
+                var claimsIdentity = new ClaimsIdentity(
+                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(30)
+                };
+
+                // ✅ Sign in with cookie
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
+
+                // ✅ Always go to Home after login
                 return RedirectToAction("Index", "Home");
             }
 
@@ -119,9 +132,43 @@ namespace SupportLink.Controllers
         // ==========================
         // LOGOUT
         // ==========================
-        public IActionResult Logout()
+        [HttpGet]
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Clear();
+            // ✅ Proper cookie sign-out
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction("Login", "Account");
+        }
+        // ==========================
+        // RESET PASSWORD
+        // ==========================
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            return View(new ResetPasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = _context.ApplicationUsers.FirstOrDefault(u => u.Email == model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "No account found with that email.");
+                return View(model);
+            }
+
+            // ✅ Hash and update password
+            user.Password = HashPassword(model.NewPassword);
+            user.confirmPassword = user.Password;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Password reset successful! You can now log in.";
             return RedirectToAction("Login", "Account");
         }
     }
