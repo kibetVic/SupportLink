@@ -1,0 +1,44 @@
+﻿@model SupportLink.Models.AccountUser
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h2>Register</h2>
+
+<form asp-action="Register" method="post">
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="confirmPassword"></label>
+        <input asp-for="confirmPassword" class="form-control" type="password" />
+        <span asp-validation-for="confirmPassword" class="text-danger"></span>
+    </div>
+
+    <!-- Role hidden because default is Staff -->
+    <input type="hidden" asp-for="Role" value="Staff" />
+
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+
+<p class="text-danger">@ViewBag.Message</p>
+<p>Already have an account? <a asp-action="Login" asp-controller="Account">Login here</a></p>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

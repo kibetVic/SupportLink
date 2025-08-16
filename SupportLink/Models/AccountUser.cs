@@ -15,11 +15,12 @@ namespace SupportLink.Models
 
         [Required, StringLength(100)]
         public string Email { get; set; }
+
         public string Password { get; set; }
+        public string confirmPassword { get; set; }
         public string Role { get; set; } // Customer, Agent, Admin
-        //public ICollection<SupportTicket> Tickets { get; set; } = new List<SupportTicket>();
-       // public ICollection<SupportTicket> AssignedTickets { get; set; } = new List<SupportTicket>();
     }
+
     public enum Role
     {
         Admin,

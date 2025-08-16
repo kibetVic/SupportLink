@@ -4,6 +4,10 @@ namespace SupportLink.Models
 {
     public class SupportLinkDbContext : DbContext
     {
+        public SupportLinkDbContext()
+        {
+        }
+
         public SupportLinkDbContext(DbContextOptions<SupportLinkDbContext> options)
             : base(options)
         {

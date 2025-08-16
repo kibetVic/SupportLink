@@ -1,156 +1,128 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SupportLink.Models;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SupportLink.Controllers
 {
-    public class AccountUsersController : Controller
+    public class AccountController : Controller
     {
         private readonly SupportLinkDbContext _context;
 
-        public AccountUsersController(SupportLinkDbContext context)
+        public AccountController(SupportLinkDbContext context)
         {
             _context = context;
         }
 
-        // GET: AccountUsers
-        public async Task<IActionResult> Index()
+        // ==========================
+        // PASSWORD HASHING HELPER
+        // ==========================
+        private string HashPassword(string password)
         {
-            return View(await _context.ApplicationUsers.ToListAsync());
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                foreach (var b in bytes)
+                    builder.Append(b.ToString("x2"));
+                return builder.ToString();
+            }
         }
 
-        // GET: AccountUsers/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var accountUser = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(m => m.UserId == id);
-            if (accountUser == null)
-            {
-                return NotFound();
-            }
-
-            return View(accountUser);
-        }
-
-        // GET: AccountUsers/Create
-        public IActionResult Create()
+        // ==========================
+        // REGISTER
+        // ==========================
+        [HttpGet]
+        public IActionResult Register()
         {
             return View();
         }
 
-        // POST: AccountUsers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserId,UserName,Email,Password,Role")] AccountUser accountUser)
+        public IActionResult Register(AccountUser model)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(accountUser);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                // check if email already exists
+                if (_context.ApplicationUsers.Any(u => u.Email == model.Email))
+                {
+                    ModelState.AddModelError("", "Email already registered!");
+                    return View(model);
+                }
+
+                // check password confirmation
+                if (model.Password != model.confirmPassword)
+                {
+                    ModelState.AddModelError("", "Passwords do not match!");
+                    return View(model);
+                }
+
+                // hash password before saving
+                model.Password = HashPassword(model.Password);
+                model.confirmPassword = model.Password;
+
+                // set default role = Staff
+                model.Role = Role.Staff.ToString();
+
+                _context.ApplicationUsers.Add(model);
+                _context.SaveChanges();
+
+                // redirect to login instead of auto login
+                return RedirectToAction("Login", "Account");
             }
-            return View(accountUser);
+
+            return View(model);
         }
 
-        // GET: AccountUsers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        // ==========================
+        // LOGIN
+        // ==========================
+        [HttpGet]
+        public IActionResult Login()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var accountUser = await _context.ApplicationUsers.FindAsync(id);
-            if (accountUser == null)
-            {
-                return NotFound();
-            }
-            return View(accountUser);
+            return View(new LoginViewModel()); // ensure model is sent
         }
 
-        // POST: AccountUsers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UserId,UserName,Email,Password,Role")] AccountUser accountUser)
+        public IActionResult Login(LoginViewModel model)
         {
-            if (id != accountUser.UserId)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            string hashed = HashPassword(model.Password);
+
+            // Check by Email OR UserName
+            var user = _context.ApplicationUsers
+                .FirstOrDefault(u =>
+                    (u.UserName == model.LoginIdentifier || u.Email == model.LoginIdentifier)
+                    && u.Password == hashed);
+
+            if (user != null)
             {
-                return NotFound();
+                // Store session
+                HttpContext.Session.SetString("UserName", user.UserName);
+                HttpContext.Session.SetString("UserRole", user.Role);
+
+                // Redirect to Home
+                return RedirectToAction("Index", "Home");
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(accountUser);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AccountUserExists(accountUser.UserId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(accountUser);
+            ModelState.AddModelError("", "Invalid Username/Email or Password");
+            return View(model);
         }
 
-        // GET: AccountUsers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // ==========================
+        // LOGOUT
+        // ==========================
+        public IActionResult Logout()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var accountUser = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(m => m.UserId == id);
-            if (accountUser == null)
-            {
-                return NotFound();
-            }
-
-            return View(accountUser);
-        }
-
-        // POST: AccountUsers/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var accountUser = await _context.ApplicationUsers.FindAsync(id);
-            if (accountUser != null)
-            {
-                _context.ApplicationUsers.Remove(accountUser);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool AccountUserExists(int id)
-        {
-            return _context.ApplicationUsers.Any(e => e.UserId == id);
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Account");
         }
     }
 }

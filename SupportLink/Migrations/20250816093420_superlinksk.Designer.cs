@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SupportLink.Models;
 
@@ -11,9 +12,11 @@ using SupportLink.Models;
 namespace SupportLink.Migrations
 {
     [DbContext(typeof(SupportLinkDbContext))]
-    partial class SupportLinkDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250816093420_superlinksk")]
+    partial class superlinksk
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
