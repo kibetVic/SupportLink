@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace SupportLink.Models
 {
@@ -6,10 +7,17 @@ namespace SupportLink.Models
     {
         [Key]
         public int Id { get; set; }
-        public string OrganizationCode { get; set; }
-        public string OrganizationName { get; set; } // SACCO or Company Name
+
+        [Required]
+        public string OrganizationCode { get; set; } = string.Empty;
+
+        [Required]
+        public string OrganizationName { get; set; } = string.Empty;
+
         public string? Address { get; set; }
         public string? PhoneNumber { get; set; }
-       // public ICollection<SupportTicket> Tickets { get; set; } = new List<SupportTicket>();
+
+        // Navigation
+        public ICollection<SupportTicket> Tickets { get; set; } = new List<SupportTicket>();
     }
 }

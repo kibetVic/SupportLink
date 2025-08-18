@@ -9,7 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - BestLife</title>
+    <title>@ViewData["Title"] - SupportLink</title>
 
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/lib/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
@@ -31,7 +31,7 @@
             border-radius: 16px;
             padding: 30px;
             width: 100%;
-            max-width: 420px; /* ✅ reduced for compact form */
+            max-width: 420px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
 
@@ -46,7 +46,7 @@
         .logo-img {
             display: block;
             margin: 0 auto 20px;
-            width: 70px; /* ✅ slightly smaller */
+            width: 70px;
             height: 70px;
             border-radius: 50%;
             object-fit: cover;
@@ -57,33 +57,36 @@
             font-size: 0.875rem;
         }
 
-        .dob-error {
-            display: none;
-            color: #dc3545;
-            font-size: 0.875rem;
-        }
-
         .form-label {
             font-weight: 600;
         }
 
         .btn {
-            width: 100%; /* ✅ full width button */
+            width: 100%;
             font-weight: 600;
         }
     </style>
-
 </head>
 <body>
     <div class="register-card">
         <img src="~/images/Amtech.png" alt="Amtech" class="logo-img" />
         <h2 class="mb-4 text-primary form-title">Create Account</h2>
 
-        <form asp-action="Register" method="post" class="row g-3" id="registerForm">
+        <!-- ✅ Success/Error Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form asp-action="Register" method="post" class="row g-3">
             <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3"></div>
 
             <div class="form-group">
-                <label asp-for="UserName"></label>
+                <label asp-for="UserName">User Name</label>
                 <input asp-for="UserName" class="form-control" />
                 <span asp-validation-for="UserName" class="text-danger"></span>
             </div>
@@ -101,16 +104,14 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="confirmPassword"></label>
-                <input asp-for="confirmPassword" class="form-control" type="password" />
-                <span asp-validation-for="confirmPassword" class="text-danger"></span>
+                <label asp-for="ConfirmPassword">Confirm Password</label>
+                <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
-
-            <!-- Role hidden because default is Staff -->
-            <input type="hidden" asp-for="Role" value="Staff" />
 
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
+
         <p class="text-danger">@ViewBag.Message</p>
         <p>Already have an account? <a asp-action="Login" asp-controller="Account">Login here</a></p>
     </div>
@@ -118,26 +119,5 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        document.getElementById("registerForm").addEventListener("submit", function (e) {
-            const dobInput = document.getElementById("dobInput");
-            const dobError = document.getElementById("dobError");
-            const dobValue = new Date(dobInput.value);
-            const today = new Date();
-            const age = today.getFullYear() - dobValue.getFullYear();
-            const m = today.getMonth() - dobValue.getMonth();
-
-            const isUnderage = (age < 18 || (age === 18 && m < 0));
-
-            if (isUnderage) {
-                e.preventDefault();
-                dobError.style.display = "block";
-                dobInput.classList.add("is-invalid");
-            } else {
-                dobError.style.display = "none";
-                dobInput.classList.remove("is-invalid");
-            }
-        });
-    </script>
 </body>
+</html>

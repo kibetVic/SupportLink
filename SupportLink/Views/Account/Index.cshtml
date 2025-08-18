@@ -1,0 +1,82 @@
+﻿@model IEnumerable<SupportLink.Models.AccountUser>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<style>
+    .table tr {
+        font-size: 12px;
+    }
+</style>
+
+<h1 class="mb-4 text-primary"><i class="fas fa-users me-2"></i>Users</h1>
+<p>
+    <a asp-action="Create" class="btn btn-success">
+        <i class="fas fa-user-plus"></i> New User
+    </a>
+</p>
+<div class="mb-3">
+    <input type="text" id="memberSearch" class="form-control" placeholder="🔍 Search members by name, phone, or email..." />
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Role)
+            </th>
+            <th>Details</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Role)
+            </td>
+
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-sm btn-info" title="Details">
+                        Details
+                    </a>
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.UserId" class="btn btn-sm btn-primary" title="Edit">
+                        Edit
+                    </a>
+                </td>
+                <td>
+                    <a asp-action="Delete" asp-route-id="@item.UserId" class="btn btn-sm btn-danger" title="Delete">
+                        Delete
+                    </a>
+                </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<script>
+    document.getElementById('memberSearch').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.table tbody tr');
+
+        rows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>

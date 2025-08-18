@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SupportLink.Models;
+using SupportLink.Data;
 
 #nullable disable
 
@@ -48,13 +48,9 @@ namespace SupportLink.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("confirmPassword")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("UserId");
 
-                    b.ToTable("ApplicationUsers");
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("SupportLink.Models.Feedback", b =>
@@ -74,17 +70,20 @@ namespace SupportLink.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.Property<int>("UpdateDetailsId")
+                    b.Property<int>("SupportId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UpdateId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UpdateDetailsId");
+                    b.HasIndex("SupportId")
+                        .IsUnique();
 
-                    b.ToTable("Feedback");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("SupportLink.Models.Organization", b =>
@@ -122,12 +121,8 @@ namespace SupportLink.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SupportId"));
 
-                    b.Property<int>("AssignedAgentId")
+                    b.Property<int?>("AssignedAgentId")
                         .HasColumnType("int");
-
-                    b.Property<string>("AssignedTo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -136,11 +131,7 @@ namespace SupportLink.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("FeedbackId")
-                        .HasColumnType("int");
-
                     b.Property<string>("FileType")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IssueCategory")
@@ -167,8 +158,6 @@ namespace SupportLink.Migrations
 
                     b.HasIndex("AssignedAgentId");
 
-                    b.HasIndex("FeedbackId");
-
                     b.HasIndex("OrganizationId");
 
                     b.HasIndex("UserId");
@@ -187,9 +176,6 @@ namespace SupportLink.Migrations
                     b.Property<int>("SupportId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TicketSupportId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UpdateDetails")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -202,7 +188,7 @@ namespace SupportLink.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TicketSupportId");
+                    b.HasIndex("SupportId");
 
                     b.HasIndex("UpdatedById");
 
@@ -211,44 +197,45 @@ namespace SupportLink.Migrations
 
             modelBuilder.Entity("SupportLink.Models.Feedback", b =>
                 {
-                    b.HasOne("SupportLink.Models.TicketUpdate", "UpdateDetails")
-                        .WithMany()
-                        .HasForeignKey("UpdateDetailsId")
+                    b.HasOne("SupportLink.Models.SupportTicket", "Ticket")
+                        .WithOne("Feedback")
+                        .HasForeignKey("SupportLink.Models.Feedback", "SupportId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("UpdateDetails");
+                    b.HasOne("SupportLink.Models.AccountUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SupportLink.Models.SupportTicket", b =>
                 {
                     b.HasOne("SupportLink.Models.AccountUser", "AssignedAgent")
-                        .WithMany()
+                        .WithMany("AssignedTickets")
                         .HasForeignKey("AssignedAgentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SupportLink.Models.Feedback", "Feedback")
-                        .WithMany()
-                        .HasForeignKey("FeedbackId");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SupportLink.Models.Organization", "Organization")
-                        .WithMany()
+                        .WithMany("Tickets")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SupportLink.Models.AccountUser", "AccountUser")
-                        .WithMany()
+                        .WithMany("CreatedTickets")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("AccountUser");
 
                     b.Navigation("AssignedAgent");
-
-                    b.Navigation("Feedback");
 
                     b.Navigation("Organization");
                 });
@@ -256,13 +243,13 @@ namespace SupportLink.Migrations
             modelBuilder.Entity("SupportLink.Models.TicketUpdate", b =>
                 {
                     b.HasOne("SupportLink.Models.SupportTicket", "Ticket")
-                        .WithMany()
-                        .HasForeignKey("TicketSupportId")
+                        .WithMany("Updates")
+                        .HasForeignKey("SupportId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SupportLink.Models.AccountUser", "UpdatedBy")
-                        .WithMany()
+                        .WithMany("Updates")
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -270,6 +257,27 @@ namespace SupportLink.Migrations
                     b.Navigation("Ticket");
 
                     b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("SupportLink.Models.AccountUser", b =>
+                {
+                    b.Navigation("AssignedTickets");
+
+                    b.Navigation("CreatedTickets");
+
+                    b.Navigation("Updates");
+                });
+
+            modelBuilder.Entity("SupportLink.Models.Organization", b =>
+                {
+                    b.Navigation("Tickets");
+                });
+
+            modelBuilder.Entity("SupportLink.Models.SupportTicket", b =>
+                {
+                    b.Navigation("Feedback");
+
+                    b.Navigation("Updates");
                 });
 #pragma warning restore 612, 618
         }

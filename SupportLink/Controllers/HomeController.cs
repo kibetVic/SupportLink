@@ -17,6 +17,10 @@ namespace SupportLink.Controllers
 
         public IActionResult Index()
         {
+            // ? You can pass user details to the view using ViewBag
+            ViewBag.UserName = User.Identity?.Name;
+            ViewBag.Role = User.IsInRole("Admin") ? "Admin" : "Staff";
+
             return View();
         }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,20 +10,30 @@ namespace SupportLink.Models
         public int UserId { get; set; }
 
         [Required, StringLength(100)]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = string.Empty;
 
         [Required, StringLength(100)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
-        public string Password { get; set; }
-        public string confirmPassword { get; set; }
-        public string Role { get; set; } // Customer, Agent, Admin
+        [Required]
+        public string Password { get; set; } = string.Empty;
+
+        [NotMapped]   // 🚀 EF won’t try to save this
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
+        public UserRole Role { get; set; } = UserRole.Staff; // 🚀 Default role = Staff
+
+        // Navigation
+        public ICollection<SupportTicket> CreatedTickets { get; set; } = new List<SupportTicket>();
+        public ICollection<SupportTicket> AssignedTickets { get; set; } = new List<SupportTicket>();
+        public ICollection<TicketUpdate> Updates { get; set; } = new List<TicketUpdate>();
     }
 
-    public enum Role
+    public enum UserRole
     {
         Admin,
-        SupperAdmin,
         Agent,
         Staff
     }

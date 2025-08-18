@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using SupportLink.Data;
 using SupportLink.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,16 +16,17 @@ builder.Services.AddDbContext<SupportLinkDbContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";    // Redirect if not logged in
-        options.LogoutPath = "/Account/Logout";  // Redirect after logout
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Session duration
-        options.SlidingExpiration = true; // Refresh expiry when active
+        options.LoginPath = "/Account/Login";          // Redirect if not logged in
+        options.LogoutPath = "/Account/Logout";        // Logout endpoint
+        options.AccessDeniedPath = "/Account/AccessDenied"; // If role not allowed
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
     });
 
-// ✅ Add Session (optional, in case you still want to store extra values)
+// ✅ Add Session (optional)
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -32,6 +34,9 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+// ✅ Register HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -47,20 +52,16 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// ✅ Enable Authentication & Authorization
+// ✅ Authentication & Authorization middleware must come **before** endpoints
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Enable session middleware (optional)
+// ✅ Enable session middleware
 app.UseSession();
 
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller=Home}/{action=Index}/{id?}"); // Default to Home
-
-
+// Default route (login first, then Home after login)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}"); // Default to login first
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
