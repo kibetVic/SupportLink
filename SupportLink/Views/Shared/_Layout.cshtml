@@ -100,13 +100,28 @@
             <div class="sidebar">
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        <ul class="nav flex-column">
-                            <div class="container-fluid">
-                                <img src="~/images/Amtech.png" alt="Amtech" class="logo-img" />
-                            </div>
+                        <div class="container-fluid">
+                            <img src="~/images/Amtech.png" alt="Amtech" class="logo-img" />
+                        </div>
+
+                        <!-- Dashboard: everyone can see -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+
+                        @if (userRole == "Admin")
+                        {
+                            <!-- Only Admin -->
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Home" asp-action="Index">
-                                    <i class="fas fa-home"></i> Dashboard
+                                <a class="nav-link" asp-controller="SupportTickets" asp-action="Index">
+                                    <i class="fas fa-ticket-alt"></i> Support Tickets
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="TicketUpdates" asp-action="Index">
+                                    <i class="fas fa-edit"></i> Update Tickets
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -114,6 +129,21 @@
                                     <i class="fas fa-users"></i> Users
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Organizations" asp-action="Index">
+                                    <i class="fas fa-building"></i> Organizations
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Feedbacks" asp-action="Index">
+                                    <i class="fas fa-comments"></i> Feedback
+                                </a>
+                            </li>
+                        }
+
+                        @if (userRole == "Agent")
+                        {
+                            <!-- Admin & Agent -->
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="SupportTickets" asp-action="Index">
                                     <i class="fas fa-ticket-alt"></i> Support Tickets
@@ -129,12 +159,28 @@
                                     <i class="fas fa-comments"></i> Feedback
                                 </a>
                             </li>
+                        }
+
+                        @if (userRole == "Staff")
+                        {
+                            <!-- Admin & Staff -->
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Organizations" asp-action="Index">
-                                    <i class="fas fa-comments"></i> Organizations
+                                <a class="nav-link" asp-controller="SupportTickets" asp-action="Index">
+                                    <i class="fas fa-ticket-alt"></i> Support Tickets
                                 </a>
                             </li>
-                        </ul>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="TicketUpdates" asp-action="Index">
+                                    <i class="fas fa-edit"></i> Update Tickets
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Feedbacks" asp-action="Index">
+                                    <i class="fas fa-comments"></i> Feedback
+                                </a>
+                            </li>
+                        }
+                    </ul>
                 </nav>
             </div>
         </aside>

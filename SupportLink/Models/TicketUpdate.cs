@@ -17,8 +17,15 @@ namespace SupportLink.Models
         public virtual AccountUser UpdatedBy { get; set; }
 
         [Required]
-        public string UpdateDetails { get; set; } = string.Empty;
+        public UpdateStatus Status { get; set; }   // use enum instead of string
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
+
+    public enum UpdateStatus
+    {
+        Solved = 1,
+        NotSolved = 2
+    }
 }
+
