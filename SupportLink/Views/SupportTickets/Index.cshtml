@@ -1,0 +1,89 @@
+﻿@model IEnumerable<SupportLink.Models.SupportTicket>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AccountUser)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Organization)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IssueCategory)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FileType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UploadFile)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AssignedAgent)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ResolvedAt)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.AccountUser.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Organization.OrganizationCode)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IssueCategory)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FileType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UploadFile)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AssignedAgent.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ResolvedAt)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.SupportId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.SupportId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.SupportId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
