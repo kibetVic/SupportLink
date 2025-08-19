@@ -59,7 +59,7 @@ namespace SupportLink.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SupportId,UpdatedById,UpdateDetails,UpdatedAt")] TicketUpdate ticketUpdate)
+        public async Task<IActionResult> Create([Bind("Id,SupportId,UpdatedById,Status,UpdatedAt")] TicketUpdate ticketUpdate)
         {
             if (ModelState.IsValid)
             {
@@ -95,7 +95,7 @@ namespace SupportLink.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SupportId,UpdatedById,UpdateDetails,UpdatedAt")] TicketUpdate ticketUpdate)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SupportId,UpdatedById,Status,UpdatedAt")] TicketUpdate ticketUpdate)
         {
             if (id != ticketUpdate.Id)
             {

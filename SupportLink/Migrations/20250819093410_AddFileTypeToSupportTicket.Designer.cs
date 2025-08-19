@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SupportLink.Data;
 
@@ -11,9 +12,11 @@ using SupportLink.Data;
 namespace SupportLink.Migrations
 {
     [DbContext(typeof(SupportLinkDbContext))]
-    partial class SupportLinkDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250819093410_AddFileTypeToSupportTicket")]
+    partial class AddFileTypeToSupportTicket
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,7 +108,7 @@ namespace SupportLink.Migrations
 
                     b.HasKey("FileTypeId");
 
-                    b.ToTable("FileTypes");
+                    b.ToTable("FileType");
 
                     b.HasData(
                         new

@@ -19,7 +19,11 @@ namespace SupportLink.Controllers
         {
             // ? You can pass user details to the view using ViewBag
             ViewBag.UserName = User.Identity?.Name;
-            ViewBag.Role = User.IsInRole("Admin") ? "Admin" : "Staff";
+            //ViewBag.Role = User.IsInRole("Admin") ? "Admin" : "Staff" : "Agent";
+            ViewBag.Role = User.IsInRole("Admin") ? "Admin"
+             : User.IsInRole("Agent") ? "Agent"
+             : User.IsInRole("Staff") ? "Staff"
+             : "User";
 
             return View();
         }

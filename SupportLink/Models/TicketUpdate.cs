@@ -10,11 +10,11 @@ namespace SupportLink.Models
 
         // Linked Ticket
         public int SupportId { get; set; }
-        public virtual SupportTicket Ticket { get; set; }
+        public virtual SupportTicket? Ticket { get; set; }
 
         // Who updated
         public int UpdatedById { get; set; }
-        public virtual AccountUser UpdatedBy { get; set; }
+        public virtual AccountUser? UpdatedBy { get; set; }
 
         [Required]
         public UpdateStatus Status { get; set; }   // use enum instead of string

@@ -1,89 +1,83 @@
 ﻿@model IEnumerable<SupportLink.Models.SupportTicket>
+@using System.IO
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Support Tickets";
 }
 
-<h1>Index</h1>
+<h2 class="mb-4">Support Tickets</h2>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="get" class="d-flex" asp-action="Index">
+            <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control me-2" placeholder="Search by Organization, Category, Status, or Agent..." />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Create" class="btn btn-success">+ New Ticket</a>
+    </div>
+</div>
+
+<table class="table table-hover table-bordered align-middle">
+    <thead class="table-dark">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.AccountUser)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Organization)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IssueCategory)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FileType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UploadFile)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AssignedAgent)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ResolvedAt)
-            </th>
-            <th></th>
+            <th>Organization</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Assigned Agent</th>
+            <th>Description</th>
+            <th>File</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+         @if (Model != null && Model.Any())
+        {
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                <td>@ticket.Organization?.OrganizationCode</td>
+                <td>@ticket.IssueCategory?.Name</td>
+                <td>@ticket.Status?.Name</td>
+                <td>@ticket.AssignedAgent?.Email</td>
+                <td>@ticket.Description</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(ticket.UploadFile))
+                    {
+                        <a href="@ticket.UploadFile" target="_blank">@System.IO.Path.GetFileName(ticket.UploadFile)</a>
+                    }
+                    else
+                    {
+                        <span>N/A</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@ticket.SupportId" class="btn btn-sm btn-primary">Edit</a>
+                    <a asp-action="Details" asp-route-id="@ticket.SupportId" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@ticket.SupportId" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+                </tr>
+            }
+        }
+        else
+        {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.AccountUser.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Organization.OrganizationCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IssueCategory)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FileType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UploadFile)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AssignedAgent.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ResolvedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.SupportId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.SupportId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.SupportId">Delete</a>
-            </td>
+            <td colspan="7" class="text-center text-muted">No tickets found.</td>
         </tr>
-}
+        }
     </tbody>
 </table>
+@section Scripts {
+    <script>
+        // Optional: Highlight search terms
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchString = urlParams.get('searchString');
+        if (searchString) {
+            document.querySelectorAll('tbody td').forEach(td => {
+                const regex = new RegExp(searchString, 'gi');
+                td.innerHTML = td.textContent.replace(regex, match => `<mark>${match}</mark>`);
+            });
+        }
+    </script>
+}

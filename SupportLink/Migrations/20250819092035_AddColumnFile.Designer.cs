@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SupportLink.Data;
 
@@ -11,9 +12,11 @@ using SupportLink.Data;
 namespace SupportLink.Migrations
 {
     [DbContext(typeof(SupportLinkDbContext))]
-    partial class SupportLinkDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250819092035_AddColumnFile")]
+    partial class AddColumnFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,55 +87,6 @@ namespace SupportLink.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Feedbacks");
-                });
-
-            modelBuilder.Entity("SupportLink.Models.FileType", b =>
-                {
-                    b.Property<int>("FileTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FileTypeId"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("FileTypeId");
-
-                    b.ToTable("FileTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            FileTypeId = 1,
-                            Name = "Image"
-                        },
-                        new
-                        {
-                            FileTypeId = 2,
-                            Name = "Document"
-                        },
-                        new
-                        {
-                            FileTypeId = 3,
-                            Name = "PDF"
-                        },
-                        new
-                        {
-                            FileTypeId = 4,
-                            Name = "Video"
-                        },
-                        new
-                        {
-                            FileTypeId = 5,
-                            Name = "Others"
-                        });
                 });
 
             modelBuilder.Entity("SupportLink.Models.IssueCategory", b =>
@@ -238,7 +192,7 @@ namespace SupportLink.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int?>("FileTypeId")
+                    b.Property<int?>("FileType")
                         .HasColumnType("int");
 
                     b.Property<int>("OrganizationId")
@@ -261,8 +215,6 @@ namespace SupportLink.Migrations
                     b.HasIndex("AssignedAgentId");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("FileTypeId");
 
                     b.HasIndex("OrganizationId");
 
@@ -388,10 +340,6 @@ namespace SupportLink.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SupportLink.Models.FileType", "FileType")
-                        .WithMany("SupportTickets")
-                        .HasForeignKey("FileTypeId");
-
                     b.HasOne("SupportLink.Models.Organization", "Organization")
                         .WithMany("Tickets")
                         .HasForeignKey("OrganizationId")
@@ -413,8 +361,6 @@ namespace SupportLink.Migrations
                     b.Navigation("AccountUser");
 
                     b.Navigation("AssignedAgent");
-
-                    b.Navigation("FileType");
 
                     b.Navigation("IssueCategory");
 
@@ -449,11 +395,6 @@ namespace SupportLink.Migrations
                     b.Navigation("CreatedTickets");
 
                     b.Navigation("Updates");
-                });
-
-            modelBuilder.Entity("SupportLink.Models.FileType", b =>
-                {
-                    b.Navigation("SupportTickets");
                 });
 
             modelBuilder.Entity("SupportLink.Models.IssueCategory", b =>

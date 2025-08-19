@@ -1,29 +1,57 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using SupportLink.Data;
+using SupportLink.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using SupportLink.Data;
 using SupportLink.Models;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace SupportLink.Controllers
 {
     public class SupportTicketsController : Controller
     {
         private readonly SupportLinkDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public SupportTicketsController(SupportLinkDbContext context)
+        public SupportTicketsController(SupportLinkDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         // GET: SupportTickets
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var supportLinkDbContext = _context.SupportTickets.Include(s => s.AccountUser).Include(s => s.AssignedAgent).Include(s => s.Organization);
-            return View(await supportLinkDbContext.ToListAsync());
+            var tickets = _context.SupportTickets
+                .Include(t => t.Organization)
+                .Include(t => t.IssueCategory)
+                .Include(t => t.Status)
+                .Include(t => t.AssignedAgent)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                // Filter tickets to only those that match the search
+                tickets = tickets.Where(t =>
+                    t.Organization.OrganizationCode.Contains(searchString) ||
+                    t.IssueCategory.Name.Contains(searchString) ||
+                    t.Status.Name.Contains(searchString) ||
+                    (t.AssignedAgent != null && t.AssignedAgent.Email.Contains(searchString))
+                );
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            return View(await tickets.ToListAsync());
         }
 
         // GET: SupportTickets/Details/5
@@ -37,7 +65,9 @@ namespace SupportLink.Controllers
             var supportTicket = await _context.SupportTickets
                 .Include(s => s.AccountUser)
                 .Include(s => s.AssignedAgent)
+                .Include(s => s.IssueCategory)
                 .Include(s => s.Organization)
+                .Include(s => s.Status)
                 .FirstOrDefaultAsync(m => m.SupportId == id);
             if (supportTicket == null)
             {
@@ -50,28 +80,82 @@ namespace SupportLink.Controllers
         // GET: SupportTickets/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "UserId", "Email");
-            ViewData["AssignedAgentId"] = new SelectList(_context.Users, "UserId", "Email");
-            ViewData["OrganizationId"] = new SelectList(_context.Organizations, "Id", "OrganizationCode");
+            ViewBag.Users = new SelectList(_context.Users, "UserId", "Email");
+            ViewBag.AssignedAgentId = new SelectList(_context.Users, "UserId", "Email");
+            ViewBag.Categories = new SelectList(_context.IssueCategories, "CategoryId", "Name");
+            ViewBag.Organizations = new SelectList(_context.Organizations, "Id", "OrganizationCode");
+            ViewBag.Statuses = new SelectList(_context.TicketStatuses, "StatusId", "Name");
+            ViewBag.FileTypes = new SelectList(_context.FileTypes, "FileTypeId", "Name"); // <-- new
             return View();
         }
 
         // POST: SupportTickets/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SupportId,UserId,OrganizationId,IssueCategory,Description,FileType,UploadFile,Status,AssignedAgentId,CreatedAt,ResolvedAt")] SupportTicket supportTicket)
+        public async Task<IActionResult> Create(SupportTicket supportTicket)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(supportTicket);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    // 🔹 Handle File Upload
+                    if (supportTicket.FileUpload != null && supportTicket.FileUpload.Length > 0)
+                    {
+                        string uploadDir = Path.Combine(_environment.WebRootPath, "uploads");
+                        if (!Directory.Exists(uploadDir))
+                            Directory.CreateDirectory(uploadDir);
+
+                        string uniqueFileName = Guid.NewGuid() + Path.GetExtension(supportTicket.FileUpload.FileName);
+                        string filePath = Path.Combine(uploadDir, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await supportTicket.FileUpload.CopyToAsync(stream);
+                        }
+
+                        supportTicket.UploadFile = "/uploads/" + uniqueFileName;
+
+                        // 🔹 Auto-detect FileType
+                        string ext = Path.GetExtension(supportTicket.FileUpload.FileName).ToLower();
+                        if (ext is ".jpg" or ".jpeg" or ".png" or ".gif")
+                            supportTicket.FileTypeId = _context.FileTypes.FirstOrDefault(f => f.Name.ToLower() == "image")?.FileTypeId;
+                        else if (ext is ".doc" or ".docx")
+                            supportTicket.FileTypeId = _context.FileTypes.FirstOrDefault(f => f.Name.ToLower() == "document")?.FileTypeId;
+                        else if (ext == ".pdf")
+                            supportTicket.FileTypeId = _context.FileTypes.FirstOrDefault(f => f.Name.ToLower() == "pdf")?.FileTypeId;
+                        else
+                            supportTicket.FileTypeId = _context.FileTypes.FirstOrDefault(f => f.Name.ToLower() == "others")?.FileTypeId;
+                    }
+
+                    // 🔹 Set defaults
+                    supportTicket.StatusId = 1; // Default: "New"
+                    supportTicket.CreatedAt = DateTime.UtcNow;
+
+                    _context.Add(supportTicket);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "✅ Support ticket created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    TempData["ErrorMessage"] = "⚠️ Ticket could not be created. Errors: " + string.Join("; ", errors);
+                }
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "UserId", "Email", supportTicket.UserId);
-            ViewData["AssignedAgentId"] = new SelectList(_context.Users, "UserId", "Email", supportTicket.AssignedAgentId);
-            ViewData["OrganizationId"] = new SelectList(_context.Organizations, "Id", "OrganizationCode", supportTicket.OrganizationId);
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "❌ An error occurred while saving the ticket: " + ex.Message;
+            }
+
+            // ❌ If invalid → re-populate dropdowns
+            ViewBag.Users = new SelectList(_context.Users, "UserId", "Email", supportTicket.UserId);
+            ViewBag.AssignedAgentId = new SelectList(_context.Users, "UserId", "Email", supportTicket.AssignedAgentId);
+            ViewBag.Categories = new SelectList(_context.IssueCategories, "CategoryId", "Name", supportTicket.CategoryId);
+            ViewBag.Organizations = new SelectList(_context.Organizations, "Id", "OrganizationCode", supportTicket.OrganizationId);
+            ViewBag.Statuses = new SelectList(_context.TicketStatuses, "StatusId", "Name", supportTicket.StatusId);
+            ViewBag.FileTypes = new SelectList(_context.FileTypes, "FileTypeId", "Name", supportTicket.FileTypeId);
+
             return View(supportTicket);
         }
 
@@ -90,16 +174,16 @@ namespace SupportLink.Controllers
             }
             ViewData["UserId"] = new SelectList(_context.Users, "UserId", "Email", supportTicket.UserId);
             ViewData["AssignedAgentId"] = new SelectList(_context.Users, "UserId", "Email", supportTicket.AssignedAgentId);
+            ViewData["CategoryId"] = new SelectList(_context.IssueCategories, "CategoryId", "Name", supportTicket.CategoryId);
             ViewData["OrganizationId"] = new SelectList(_context.Organizations, "Id", "OrganizationCode", supportTicket.OrganizationId);
+            ViewData["StatusId"] = new SelectList(_context.TicketStatuses, "StatusId", "Name", supportTicket.StatusId);
             return View(supportTicket);
         }
 
         // POST: SupportTickets/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SupportId,UserId,OrganizationId,IssueCategory,Description,FileType,UploadFile,Status,AssignedAgentId,CreatedAt,ResolvedAt")] SupportTicket supportTicket)
+        public async Task<IActionResult> Edit(int id, [Bind("SupportId,UserId,OrganizationId,CategoryId,Description,FileType,UploadFile,StatusId,AssignedAgentId,CreatedAt,ResolvedAt")] SupportTicket supportTicket)
         {
             if (id != supportTicket.SupportId)
             {
@@ -128,7 +212,9 @@ namespace SupportLink.Controllers
             }
             ViewData["UserId"] = new SelectList(_context.Users, "UserId", "Email", supportTicket.UserId);
             ViewData["AssignedAgentId"] = new SelectList(_context.Users, "UserId", "Email", supportTicket.AssignedAgentId);
+            ViewData["CategoryId"] = new SelectList(_context.IssueCategories, "CategoryId", "Name", supportTicket.CategoryId);
             ViewData["OrganizationId"] = new SelectList(_context.Organizations, "Id", "OrganizationCode", supportTicket.OrganizationId);
+            ViewData["StatusId"] = new SelectList(_context.TicketStatuses, "StatusId", "Name", supportTicket.StatusId);
             return View(supportTicket);
         }
 
@@ -143,7 +229,9 @@ namespace SupportLink.Controllers
             var supportTicket = await _context.SupportTickets
                 .Include(s => s.AccountUser)
                 .Include(s => s.AssignedAgent)
+                .Include(s => s.IssueCategory)
                 .Include(s => s.Organization)
+                .Include(s => s.Status)
                 .FirstOrDefaultAsync(m => m.SupportId == id);
             if (supportTicket == null)
             {

@@ -1,72 +1,119 @@
 ﻿@model SupportLink.Models.SupportTicket
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Support Ticket";
 }
 
-<h1>Create</h1>
-
-<h4>SupportTicket</h4>
+<h4>Create Support Ticket</h4>
 <hr />
+
+<!-- TempData Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Created By -->
             <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
+                <select asp-for="UserId" class="form-control" asp-items="ViewBag.Users">
+                    <option value="">-- Select User --</option>
+                </select>
+                <span asp-validation-for="UserId" class="text-danger"></span>
             </div>
+
+            <!-- Organization -->
             <div class="form-group">
                 <label asp-for="OrganizationId" class="control-label"></label>
-                <select asp-for="OrganizationId" class ="form-control" asp-items="ViewBag.OrganizationId"></select>
+                <select asp-for="OrganizationId" class="form-control" asp-items="ViewBag.Organizations">
+                    <option value="">-- Select Organization --</option>
+                </select>
+                <span asp-validation-for="OrganizationId" class="text-danger"></span>
             </div>
+
+            <!-- Category -->
             <div class="form-group">
-                <label asp-for="IssueCategory" class="control-label"></label>
-                <input asp-for="IssueCategory" class="form-control" />
-                <span asp-validation-for="IssueCategory" class="text-danger"></span>
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
+
+            <!-- Status -->
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
+                <label asp-for="StatusId" class="control-label"></label>
+                <select asp-for="StatusId" class="form-control" asp-items="ViewBag.Statuses">
+                    <option value="">-- Select Status --</option>
+                </select>
+                <span asp-validation-for="StatusId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="FileType" class="control-label"></label>
-                <input asp-for="FileType" class="form-control" />
-                <span asp-validation-for="FileType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UploadFile" class="control-label"></label>
-                <input asp-for="UploadFile" class="form-control" />
-                <span asp-validation-for="UploadFile" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
+
+            <!-- Assigned Agent -->
             <div class="form-group">
                 <label asp-for="AssignedAgentId" class="control-label"></label>
-                <select asp-for="AssignedAgentId" class ="form-control" asp-items="ViewBag.AssignedAgentId"></select>
+                <select asp-for="AssignedAgentId" class="form-control" asp-items="ViewBag.AssignedAgentId">
+                    <option value="">-- Select Agent (Optional) --</option>
+                </select>
+                <span asp-validation-for="AssignedAgentId" class="text-danger"></span>
             </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <!-- File Type -->
+            <div class="form-group">
+                <label asp-for="FileTypeId" class="control-label"></label>
+                <select asp-for="FileTypeId" class="form-control" asp-items="ViewBag.FileTypes">
+                    <option value="">-- Auto-detect from file --</option>
+                </select>
+                <span asp-validation-for="FileTypeId" class="text-danger"></span>
+            </div>
+
+            <!-- File Upload -->
+            <div class="form-group">
+                <label asp-for="FileUpload" class="control-label">Upload File</label>
+                <input asp-for="FileUpload" type="file" class="form-control" />
+                <span asp-validation-for="FileUpload" class="text-danger"></span>
+            </div>
+
+            <!-- Created & Resolved Dates -->
             <div class="form-group">
                 <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
+                <input asp-for="CreatedAt" class="form-control" type="datetime-local" value="@DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm")" />
                 <span asp-validation-for="CreatedAt" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="ResolvedAt" class="control-label"></label>
-                <input asp-for="ResolvedAt" class="form-control" />
+                <input asp-for="ResolvedAt" class="form-control" type="datetime-local" />
                 <span asp-validation-for="ResolvedAt" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <!-- Buttons -->
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

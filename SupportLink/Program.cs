@@ -47,6 +47,36 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Ensure database is created and migrations are applied on startup
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<SupportLinkDbContext>();
+//    db.Database.Migrate();
+
+//    // Seed minimal data for Users and Organizations if empty
+//    if (!db.Organizations.Any())
+//    {
+//        db.Organizations.Add(new Organization
+//        {
+//            OrganizationCode = "ORG-001",
+//            OrganizationName = "Default Organization"
+//        });
+//        db.SaveChanges();
+//    }
+
+//    if (!db.Users.Any())
+//    {
+//        db.Users.Add(new AccountUser
+//        {
+//            UserName = "Default Staff",
+//            Email = "staff@example.com",
+//            Password = "Password123!",
+//            Role = UserRole.Staff
+//        });
+//        db.SaveChanges();
+//    }
+//}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
