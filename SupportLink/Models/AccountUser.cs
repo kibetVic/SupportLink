@@ -23,8 +23,13 @@ namespace SupportLink.Models
         public string ConfirmPassword { get; set; } = string.Empty;
 
         [Required]
-        public UserRole Role { get; set; } = UserRole.Staff; // 🚀 Default role = Staff
+        public UserRole Role { get; set; } = UserRole.Staff; 
+        public int? SpecializationCategoryId { get; set; }
+        public virtual IssueCategory? SpecializationCategory { get; set; }
 
+        [Required] 
+        public int? OrganizationId { get; set; }
+        public virtual Organization? Organization { get; set; }
         // Navigation
         public ICollection<SupportTicket> CreatedTickets { get; set; } = new List<SupportTicket>();
         public ICollection<SupportTicket> AssignedTickets { get; set; } = new List<SupportTicket>();
@@ -35,6 +40,8 @@ namespace SupportLink.Models
     {
         Admin,
         Agent,
-        Staff
+        Staff,
+        WBD,
+        HelpDesk
     }
 }

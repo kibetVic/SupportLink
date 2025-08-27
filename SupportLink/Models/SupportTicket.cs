@@ -7,6 +7,8 @@ namespace SupportLink.Models
 {
     public class SupportTicket
     {
+        internal object Subject;
+
         [Key]
         public int SupportId { get; set; }
 
@@ -14,6 +16,7 @@ namespace SupportLink.Models
         [Required]
         [Display(Name = "Created By")]
         public int UserId { get; set; }
+        public string TicketName { get; set; } 
 
         [Required]
         [Display(Name = "Organization")]
@@ -27,8 +30,8 @@ namespace SupportLink.Models
         [Display(Name = "Status")]
         public int StatusId { get; set; }
 
-        [Display(Name = "Assigned Agent")]
-        public int? AssignedAgentId { get; set; } // optional
+        [Display(Name = "Assigned")]
+        public int? AssignedId { get; set; } // optional
 
         // 🔹 Ticket Details
         [Required]
@@ -61,7 +64,7 @@ namespace SupportLink.Models
         [ForeignKey(nameof(StatusId))]
         public virtual TicketStatus? Status { get; set; }
 
-        [ForeignKey(nameof(AssignedAgentId))]
+        [ForeignKey(nameof(AssignedId))]
         public virtual AccountUser? AssignedAgent { get; set; }
 
         [ForeignKey(nameof(FileTypeId))]
@@ -70,6 +73,8 @@ namespace SupportLink.Models
         // 🔹 Relationships (one-to-many / one-to-one)
         public ICollection<TicketUpdate> Updates { get; set; } = new List<TicketUpdate>();
         public Feedback? Feedback { get; set; }
+        [NotMapped]
+        public int? CreatedById { get; internal set; }
     }
 
     public class TicketStatus

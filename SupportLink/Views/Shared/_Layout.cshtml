@@ -83,16 +83,21 @@
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
-                <div class="container">
-                    <div class="row">
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-danger">
-                                <i class="fas fa-sign-out-alt me-1"></i> Logout
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                <li class="nav-item d-flex align-items-center gap-2">
+                    <span ">
+                        @{
+                            var UserRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+                        }
+                        @UserRole
+                    </span>
+
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </button>
+                    </form>
+                </li>
             </ul>
         </nav>
         <aside class="main-sidebar sidebar-light-primary elevation-4">
@@ -110,7 +115,41 @@
                             </a>
                         </li>
 
-                        @if (userRole == "Admin")
+                        @if (userRole == "Admin") 
+                        {
+                            <!-- Only Admin -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="SupportTickets" asp-action="Index">
+                                    <i class="fas fa-ticket-alt"></i> Support Tickets
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="TicketUpdates" asp-action="Index">
+                                    <i class="fas fa-edit"></i> Update Tickets
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Index">
+                                    <i class="fas fa-users"></i> Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Organizations" asp-action="Index">
+                                    <i class="fas fa-building"></i> Organizations
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Feedbacks" asp-action="Index">
+                                    <i class="fas fa-comments"></i> Feedback
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Report" asp-action="Index">
+                                    <i class="fas fa-comments"></i> Report
+                                </a>
+                            </li>
+                        }
+                        @if (userRole == "HelpDesk")
                         {
                             <!-- Only Admin -->
                             <li class="nav-item">
@@ -187,12 +226,17 @@
             <section class="content">
                 <div class="container-fluid">
                     @RenderBody()
+                    @if (TempData["ToastMessage"] != null)
+                    {
+                        <div class="alert alert-@((TempData["ToastType"] as string) ?? "info") alert-dismissible fade show mt-3" role="alert">
+                            @TempData["ToastMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
                 </div>
             </section>
         </div>
     </div>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <footer class="main-footer">
         <strong style="font-size:12px">Copyright &copy; @DateTime.Now.Year <a href="#">Designed and Developed By CompTech</a>.</strong>
         All rights reserved.
@@ -200,13 +244,13 @@
     <aside class="control-sidebar control-sidebar-dark">
     </aside>
     </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/AdminLTE/plugins/jquery/jquery.min.js"></script>
     <script src="~/AdminLTE/plugins/jquery-ui/jquery-ui.min.js"></script>
-    <script>
-        $.widget.bridge('uibutton', $.ui.button)
-    </script>
-    <script src="~/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/AdminLTE/plugins/chart.js/Chart.min.js"></script>
+    <script>$.widget.bridge('uibutton', $.ui.button)</script>
+    <script src="~/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>    
     <!-- Sparkline -->
     <script src="~/AdminLTE/plugins/sparklines/sparkline.js"></script>
     <!-- JQVMap -->
@@ -225,8 +269,7 @@
     <script src="~/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
     <!-- AdminLTE App -->
     <script src="~/AdminLTE/dist/js/adminlte.js"></script>
-    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-    <script src="~/AdminLTE/dist/js/pages/dashboard.js"></script>
+    
     <!-- DataTables  & Plugins -->
     <script src="~/AdminLTE/plugins/datatables/jquery.dataTables.min.js"></script>
     <script src="~/AdminLTE/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
@@ -240,7 +283,66 @@
     <script src="~/AdminLTE/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
     <script src="~/AdminLTE/plugins/datatables-buttons/js/buttons.print.min.js"></script>
     <script src="~/AdminLTE/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+    
+    <!-- Charts (shared across dashboards) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script>
+        (function () {
+            if (window.ChartDataLabels && window.Chart) {
+                if (Chart.register) { Chart.register(ChartDataLabels); }
+                else if (Chart.plugins && Chart.plugins.register) { Chart.plugins.register(ChartDataLabels); }
+            }
+            if (window.Chart && Chart.defaults) {
+                Chart.defaults.animation = { duration: 0 };
+                Chart.defaults.animations = {
+                    colors: false,
+                    numbers: false,
+                    radius: { duration: 0 },
+                    rotation: { duration: 0 }
+                };
+                Chart.defaults.responsive = false;
+                Chart.defaults.maintainAspectRatio = false;
+                Chart.defaults.devicePixelRatio = 1;
+                if (Chart.defaults.transitions) {
+                    Chart.defaults.transitions.active = { animation: { duration: 0 } };
+                    Chart.defaults.transitions.show = { animation: { duration: 0 } };
+                    Chart.defaults.transitions.hide = { animation: { duration: 0 } };
+                }
+            }
+            window.createPieChart = function (canvasId, labels, data, colors, titleText, width, height) {
+                var canvas = document.getElementById(canvasId);
+                if (!canvas || !window.Chart) return null;
+                if (typeof width === 'number' && typeof height === 'number') {
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                return new Chart(canvas, {
+                    type: 'pie',
+                    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: false,
+                        animation: { duration: 0 },
+                        animations: {
+                            colors: false,
+                            numbers: false,
+                            radius: { duration: 0 },
+                            rotation: { duration: 0 },
+                            x: false,
+                            y: false
+                        },
+                        events: [],
+                        plugins: {
+                            title: { display: !!titleText, text: titleText || '' },
+                            tooltip: { enabled: false },
+                            datalabels: { color: '#fff', formatter: function (v) { return v + '%'; }, font: { weight: 'bold' } }
+                        }
+                    }
+                });
+            };
+        })();
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

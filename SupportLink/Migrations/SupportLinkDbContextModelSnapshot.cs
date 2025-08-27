@@ -35,6 +35,9 @@ namespace SupportLink.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -43,12 +46,19 @@ namespace SupportLink.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SpecializationCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("SpecializationCategoryId");
 
                     b.ToTable("Users");
                 });
@@ -184,6 +194,12 @@ namespace SupportLink.Migrations
                         new
                         {
                             CategoryId = 5,
+                            Description = "World Bank questions",
+                            Name = "World Bank issues"
+                        },
+                        new
+                        {
+                            CategoryId = 6,
                             Description = "Other types of issues",
                             Name = "Other"
                         });
@@ -224,7 +240,7 @@ namespace SupportLink.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SupportId"));
 
-                    b.Property<int?>("AssignedAgentId")
+                    b.Property<int?>("AssignedId")
                         .HasColumnType("int");
 
                     b.Property<int>("CategoryId")
@@ -250,6 +266,10 @@ namespace SupportLink.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
+                    b.Property<string>("TicketName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UploadFile")
                         .HasColumnType("nvarchar(max)");
 
@@ -258,7 +278,7 @@ namespace SupportLink.Migrations
 
                     b.HasKey("SupportId");
 
-                    b.HasIndex("AssignedAgentId");
+                    b.HasIndex("AssignedId");
 
                     b.HasIndex("CategoryId");
 
@@ -316,14 +336,20 @@ namespace SupportLink.Migrations
                         new
                         {
                             StatusId = 4,
-                            Description = "Issue resolved",
-                            Name = "Resolved"
+                            Description = "Issue Solved",
+                            Name = "Solved"
                         },
                         new
                         {
                             StatusId = 5,
                             Description = "Ticket closed",
                             Name = "Closed"
+                        },
+                        new
+                        {
+                            StatusId = 6,
+                            Description = "Un Assigned to an agent",
+                            Name = "UnAssigned"
                         });
                 });
 
@@ -356,6 +382,24 @@ namespace SupportLink.Migrations
                     b.ToTable("TicketUpdates");
                 });
 
+            modelBuilder.Entity("SupportLink.Models.AccountUser", b =>
+                {
+                    b.HasOne("SupportLink.Models.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupportLink.Models.IssueCategory", "SpecializationCategory")
+                        .WithMany()
+                        .HasForeignKey("SpecializationCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("SpecializationCategory");
+                });
+
             modelBuilder.Entity("SupportLink.Models.Feedback", b =>
                 {
                     b.HasOne("SupportLink.Models.SupportTicket", "Ticket")
@@ -379,7 +423,7 @@ namespace SupportLink.Migrations
                 {
                     b.HasOne("SupportLink.Models.AccountUser", "AssignedAgent")
                         .WithMany("AssignedTickets")
-                        .HasForeignKey("AssignedAgentId")
+                        .HasForeignKey("AssignedId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SupportLink.Models.IssueCategory", "IssueCategory")

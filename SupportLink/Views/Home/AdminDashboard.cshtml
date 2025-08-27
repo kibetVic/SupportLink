@@ -1,0 +1,258 @@
+@model SupportLink.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2>Admin Dashboard</h2>
+
+<!-- ==================== Summary Cards ==================== -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Unassigned (New)</h5>
+                <p class="card-text display-6">@Model.UnAssignedCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">In Progress</h5>
+                <p class="card-text display-6">@Model.InProgressCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Solved</h5>
+                <p class="card-text display-6">@Model.SolvedCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Unsolved</h5>
+                <p class="card-text display-6">@Model.UnsolvedCount</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== Charts ==================== -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <canvas id="pieSolved"></canvas>
+    </div>
+    <div class="col-md-6">
+        <canvas id="pieStatus"></canvas>
+    </div>
+</div>
+
+<!-- ==================== Latest Tickets Tables ==================== -->
+<div class="row mb-4">
+    <!-- Unsolved Tickets -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Unsolved Tickets (latest 10)</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Ticket Name</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var unsolvedCounter = 1;
+                        }
+                        @foreach (var t in Model.UnsolvedTickets)
+                        {
+                            <tr>
+                                <td>@unsolvedCounter</td>
+                                <td class="text-truncate" style="max-width:260px">@t.TicketName</td>
+                                <td><span class="badge bg-warning text-dark">@t.Status?.Name</span></td>
+                                <td>@t.CreatedAt.ToLocalTime().ToString("g")</td>
+                                <td>
+                                    <a asp-controller="SupportTickets" asp-action="Details" asp-route-id="@t.SupportId" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            unsolvedCounter++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solved Tickets -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Solved Tickets (latest 10)</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Ticket Name</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var solvedCounter = 1;
+                        }
+                        @foreach (var t in Model.SolvedTickets)
+                        {
+                            <tr>
+                                <td>@solvedCounter</td>
+                                <td class="text-truncate" style="max-width:260px">@t.TicketName</td>
+                                <td><span class="badge bg-success">@t.Status?.Name</span></td>
+                                <td>@(t.ResolvedAt?.ToLocalTime().ToString("g") ?? t.CreatedAt.ToLocalTime().ToString("g"))</td>
+                                <td>
+                                    <a asp-controller="SupportTickets" asp-action="Details" asp-route-id="@t.SupportId" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            solvedCounter++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== Unassigned Tickets with Quick Assign ==================== -->
+<div class="row">
+    <div class="col-md-12 mt-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">UnAssigned Tickets</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>Title</th>
+                            <th>Created At</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Actions</th>
+                            <th>Assign Agent</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.UnAssignedTickets != null && Model.UnAssignedTickets.Any())
+                        {
+                            var counter = 1;
+                            foreach (var ticket in Model.UnAssignedTickets)
+                            {
+                                <tr>
+                                    <td>@counter</td>
+                                    <td>@ticket.TicketName</td>
+                                    <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@ticket.Status?.Name</td>
+                                    <td>@(ticket.AssignedId != null ? ticket.AssignedAgent?.Email : "Unassigned")</td>
+                                    <td>
+                                        <a asp-controller="SupportTickets"
+                                           asp-action="Details"
+                                           asp-route-id="@ticket.SupportId"
+                                           class="btn btn-sm btn-primary">View</a>
+                                    </td>
+                                    <td>
+                                        <select class="form-select assign-dropdown" data-ticket-id="@ticket.SupportId">
+                                            <option value="">-- Select Agent --</option>
+                                            @if (ViewBag.Agents != null)
+                                            {
+                                                foreach (var agent in ViewBag.Agents as List<SupportLink.Models.AccountUser>)
+                                                {
+                                                    <option value="@agent.UserId">@agent.Email</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success assign-btn" data-ticket-id="@ticket.SupportId">
+                                            Assign
+                                        </button>
+                                    </td>
+                                </tr>
+                                counter++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">No UnAssigned tickets found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== Scripts ==================== -->
+@section Scripts {
+    <script>
+        // Quick Assign Button Click
+        $(document).ready(function () {
+            $(".assign-btn").click(function () {
+                var ticketId = $(this).data("ticket-id");
+                var agentId = $(".assign-dropdown[data-ticket-id='" + ticketId + "']").val();
+
+                if (!agentId) {
+                    alert("Please select an agent.");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("AssignTicket", "SupportTickets")',
+                    type: 'POST',
+                    data: {
+                        ticketId: ticketId,
+                        agentId: agentId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert("An error occurred while assigning ticket.");
+                    }
+                });
+            });
+        });
+
+        // Dashboard Charts
+        const solved = @Model.SolvedCount;
+        const unsolved = @Model.UnsolvedCount;
+        const totalSolved = Math.max(solved + unsolved, 1);
+        const solvedPct = Math.round((solved / totalSolved) * 100);
+        const unsolvedPct = 100 - solvedPct;
+
+        const statusCounts = [@Model.NewCount, @Model.AssignedCount, @Model.InProgressCount, @Model.ResolvedCount, @Model.ClosedCount];
+        const totalStatus = Math.max(statusCounts.reduce((a,b)=>a+b,0), 1);
+        const statusPct = statusCounts.map(c => Math.round((c / totalStatus) * 100));
+
+        window.createPieChart('pieSolved', ['Solved', 'Unsolved'], [solvedPct, unsolvedPct], ['#28a745', '#dc3545'], 'Solved vs Unsolved (Percent)', 380, 280);
+        window.createPieChart('pieStatus', ['New', 'Assigned', 'In Progress', 'Resolved', 'Closed'], statusPct, ['#0d6efd', '#ffc107', '#17a2b8', '#28a745', '#6c757d'], 'Tickets by Status (Percent)', 380, 280);
+    </script>
+}

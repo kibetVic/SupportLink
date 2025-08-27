@@ -4,111 +4,189 @@
     ViewData["Title"] = "Create Support Ticket";
 }
 
-<h4>Create Support Ticket</h4>
-<hr />
-
-<!-- TempData Messages -->
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-}
-
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <!-- Created By -->
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class="form-control" asp-items="ViewBag.Users">
-                    <option value="">-- Select User --</option>
-                </select>
-                <span asp-validation-for="UserId" class="text-danger"></span>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-dark">
+                        <i class="fas fa-plus-circle text-primary me-2"></i>
+                        Create Support Ticket
+                    </h1>
+                    <p class="text-muted mb-0">Submit a new support request</p>
+                </div>
+                <div>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Organization -->
-            <div class="form-group">
-                <label asp-for="OrganizationId" class="control-label"></label>
-                <select asp-for="OrganizationId" class="form-control" asp-items="ViewBag.Organizations">
-                    <option value="">-- Select Organization --</option>
-                </select>
-                <span asp-validation-for="OrganizationId" class="text-danger"></span>
-            </div>
+    <!-- TempData Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-            <!-- Category -->
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories">
-                    <option value="">-- Select Category --</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+    <!-- Form Section -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i class="fas fa-ticket-alt me-2 text-primary"></i>
+                        Ticket Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-            <!-- Status -->
-            <div class="form-group">
-                <label asp-for="StatusId" class="control-label"></label>
-                <select asp-for="StatusId" class="form-control" asp-items="ViewBag.Statuses">
-                    <option value="">-- Select Status --</option>
-                </select>
-                <span asp-validation-for="StatusId" class="text-danger"></span>
-            </div>
+                        <div class="row g-3">
+                            <!-- TicketName -->
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <input asp-for="TicketName" class="form-control" />
+                                    <label asp-for="TicketName" class="form-label">Ticket Name</label>
+                                    <span asp-validation-for="TicketName" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-            <!-- Assigned Agent -->
-            <div class="form-group">
-                <label asp-for="AssignedAgentId" class="control-label"></label>
-                <select asp-for="AssignedAgentId" class="form-control" asp-items="ViewBag.AssignedAgentId">
-                    <option value="">-- Select Agent (Optional) --</option>
-                </select>
-                <span asp-validation-for="AssignedAgentId" class="text-danger"></span>
-            </div>
+                            @* <!-- Organization -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select asp-for="OrganizationId" class="form-select" asp-items="ViewBag.Organizations">
+                                        <option value="">-- Select Organization --</option>
+                                    </select>
+                                    <label asp-for="OrganizationId" class="form-label">Organization</label>
+                                    <span asp-validation-for="OrganizationId" class="text-danger small"></span>
+                                </div>
+                            </div> *@
 
-            <!-- Description -->
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
+                            <div class="col-md-6">
+    <div class="form-floating">
+        @if (User.IsInRole("Staff"))
+        {
+            <!-- Staff: show organization as readonly -->
+            <input class="form-control" type="text" 
+                   value="@ViewBag.StaffOrganizationName" readonly />
+            <input type="hidden" asp-for="OrganizationId" 
+                   value="@ViewBag.StaffOrganizationId" />
+        }
+        else
+        {
+            <!-- Other roles: can select organization -->
+            <select asp-for="OrganizationId" class="form-select" asp-items="ViewBag.Organizations">
+                <option value="">-- Select Organization --</option>
+            </select>
+        }
+        <label asp-for="OrganizationId" class="form-label">Organization</label>
+        <span asp-validation-for="OrganizationId" class="text-danger small"></span>
+    </div>
+</div>
 
-            <!-- File Type -->
-            <div class="form-group">
-                <label asp-for="FileTypeId" class="control-label"></label>
-                <select asp-for="FileTypeId" class="form-control" asp-items="ViewBag.FileTypes">
-                    <option value="">-- Auto-detect from file --</option>
-                </select>
-                <span asp-validation-for="FileTypeId" class="text-danger"></span>
-            </div>
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                        <option value="">-- Select Issue Category --</option>
+                                    </select>
+                                    <label asp-for="CategoryId" class="form-label">Issue</label>
+                                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-            <!-- File Upload -->
-            <div class="form-group">
-                <label asp-for="FileUpload" class="control-label">Upload File</label>
-                <input asp-for="FileUpload" type="file" class="form-control" />
-                <span asp-validation-for="FileUpload" class="text-danger"></span>
-            </div>
+                            <!-- Assigned Agent -->
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select asp-for="AssignedId" class="form-select" asp-items="ViewBag.AssignedAgentId">
+                                            <option value="">-- Select Agent (Optional) --</option>
+                                        </select>
+                                        <label asp-for="AssignedId" class="form-label">Assigned Agent</label>
+                                        <span asp-validation-for="AssignedId" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                            }                            
 
-            <!-- Created & Resolved Dates -->
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" type="datetime-local" value="@DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm")" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
+                            <!-- File Type -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select asp-for="FileTypeId" class="form-select" asp-items="ViewBag.FileTypes">
+                                        <option value="">-- Auto-detect from file --</option>
+                                    </select>
+                                    <label asp-for="FileTypeId" class="form-label">File Type</label>
+                                    <span asp-validation-for="FileTypeId" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-            <div class="form-group">
-                <label asp-for="ResolvedAt" class="control-label"></label>
-                <input asp-for="ResolvedAt" class="form-control" type="datetime-local" />
-                <span asp-validation-for="ResolvedAt" class="text-danger"></span>
-            </div>
+                            <!-- File Upload -->
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input asp-for="FileUpload" type="file" class="form-control" id="fileUpload" />
+                                    <label asp-for="FileUpload" class="form-label">Upload File</label>
+                                    <span asp-validation-for="FileUpload" class="text-danger small"></span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Supported formats: PDF, DOC, DOCX, Images, etc.
+                                </div>
+                            </div>
 
-            <!-- Buttons -->
-            <div class="form-group mt-3">
-                <button type="submit" class="btn btn-primary">Create</button>
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                            <!-- Description -->
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea asp-for="Description" class="form-control" rows="4" style="height: 120px;"></textarea>
+                                    <label asp-for="Description" class="form-label">Description</label>
+                                    <span asp-validation-for="Description" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                            <!-- Resolved At -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="ResolvedAt" class="form-control" type="datetime-local" />
+                                    <label asp-for="ResolvedAt" class="form-label">Resolved At (Optional)</label>
+                                    <span asp-validation-for="ResolvedAt" class="text-danger small"></span>
+                                </div>
+                            </div>                              
+                            }
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-save me-2"></i>Create Ticket
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 

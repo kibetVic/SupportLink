@@ -1,53 +1,111 @@
 ﻿@model IEnumerable<SupportLink.Models.Organization>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Organization Management";
 }
 
-<h1>Index</h1>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-dark">
+                        <i class="fas fa-building text-primary me-2"></i>
+                        Organization Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage client organizations and their information</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.OrganizationCode)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.OrganizationName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Address)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PhoneNumber)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.OrganizationCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OrganizationName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Address)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PhoneNumber)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <!-- Organizations Table Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <input type="text" id="memberSearch" class="form-control w-50" placeholder="🔍 Search members by name, phone, or email..." />
+                        <a asp-action="Create" class="btn btn-success">
+                            <i class="fas fa-user-plus"></i> New Organization
+                        </a>
+                    </div>
+                    <h5 class="mb-0 text-dark">
+                        <i class="fas fa-list me-2 text-primary"></i>
+                        Organization List
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 px-4 py-3 text-uppercase small fw-bold text-muted">Code</th>
+                                    <th class="border-0 px-4 py-3 text-uppercase small fw-bold text-muted">Organization Name</th>
+                                    <th class="border-0 px-4 py-3 text-uppercase small fw-bold text-muted">Address</th>
+                                    <th class="border-0 px-4 py-3 text-uppercase small fw-bold text-muted">Phone Number</th>
+                                    <th class="border-0 px-4 py-3 text-uppercase small fw-bold text-muted">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr class="border-bottom">
+                                            <td class="px-4 py-3">
+                                                <span class="badge bg-primary fs-6">@item.OrganizationCode</span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="fw-semibold text-dark">@item.OrganizationName</span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="text-truncate" style="max-width: 250px;" title="@(item.Address ?? "")">
+                                                    <span class="text-muted">@(item.Address ?? "N/A")</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="text-muted">
+                                                    @(item.PhoneNumber ?? "N/A")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-building fa-3x mb-3"></i>
+                                                <p class="mb-0">No organizations found</p>
+                                                <small>Create your first organization to get started</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('memberSearch').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.table tbody tr');
+
+        rows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>

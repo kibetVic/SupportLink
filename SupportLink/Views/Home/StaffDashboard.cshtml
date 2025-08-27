@@ -1,0 +1,140 @@
+@model SupportLink.Models.StaffDashboardViewModel
+
+@{
+	ViewData["Title"] = "My Dashboard";
+}
+
+<h2>My Dashboard</h2>
+
+<div class="row">
+	<div class="col-md-3">
+		<div class="card text-bg-primary mb-3">
+			<div class="card-body">
+				<h6 class="card-title">Open Tickets</h6>
+				<p class="display-6">@Model.MyOpenCount</p>
+				<a asp-controller="SupportTickets" asp-action="Index" class="stretched-link"></a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-bg-success mb-3">
+			<div class="card-body">
+				<h6 class="card-title">Solved</h6>
+				<p class="display-6">@Model.MySolvedCount</p>
+				<a asp-controller="SupportTickets" asp-action="Index" class="stretched-link"></a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-bg-info mb-3">
+			<div class="card-body">
+				<h6 class="card-title">My Updates</h6>
+				<p class="display-6">@Model.MyUpdatesCount</p>
+				<a asp-controller="TicketUpdates" asp-action="Index" class="stretched-link"></a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-bg-warning mb-3">
+			<div class="card-body">
+				<h6 class="card-title">My Feedback</h6>
+				<p class="display-6">@Model.MyFeedbackCount</p>
+				<a asp-controller="Feedbacks" asp-action="Index" class="stretched-link"></a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-6">
+		<canvas id="pieMine"></canvas>
+	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div class="card-header">Recent Tickets</div>
+			<ul class="list-group list-group-flush">
+				@foreach (var t in Model.RecentTickets)
+				{
+					<li class="list-group-item d-flex justify-content-between align-items-center">
+						<span>#@t.SupportId - @t.TicketName</span>
+						<span class="badge bg-secondary">@t.Status?.Name</span>
+						<a asp-controller="SupportTickets" asp-action="Details" asp-route-id="@t.SupportId" class="btn btn-sm btn-outline-primary">View</a>
+					</li>
+				}
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="row mt-4">
+	<div class="col-md-6">
+		<div class="card">
+			<div class="card-header">My Solved Tickets (latest 10)</div>
+			<div class="table-responsive">
+				<table class="table table-sm table-striped">
+					<thead>
+						<tr>
+							<th>No.</th>
+							<th>Ticket Name</th>
+							<th>Status</th>
+							<th>When</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var t in Model.MySolvedTickets)
+						{
+							<tr>
+								<td>@t.SupportId</td>
+								<td class="text-truncate" style="max-width:260px">@t.TicketName</td>
+								<td><span class="badge bg-success">@t.Status?.Name</span></td>
+								<td>@(t.ResolvedAt?.ToLocalTime().ToString("g") ?? t.CreatedAt.ToLocalTime().ToString("g"))</td>
+								<td><a asp-controller="SupportTickets" asp-action="Details" asp-route-id="@t.SupportId" class="btn btn-sm btn-outline-primary">View</a></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div class="card-header">My Unsolved Tickets (latest 10)</div>
+			<div class="table-responsive">
+				<table class="table table-sm table-striped">
+					<thead>
+						<tr>
+							<th>No.</th>
+							<th>Ticket Name</th>
+							<th>Status</th>
+							<th>Created</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var t in Model.MyUnsolvedTickets)
+						{
+							<tr>
+								<td>@t.SupportId</td>
+								<td class="text-truncate" style="max-width:260px">@t.TicketName</td>
+								<td><span class="badge bg-warning text-dark">@t.Status?.Name</span></td>
+								<td>@t.CreatedAt.ToLocalTime().ToString("g")</td>
+								<td><a asp-controller="SupportTickets" asp-action="Details" asp-route-id="@t.SupportId" class="btn btn-sm btn-outline-primary">View</a></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+<script>
+    const myCounts = [@Model.MyNewCount, @Model.MyAssignedCount, @Model.MyInProgressCount, @Model.MyResolvedCount, @Model.MyClosedCount];
+    const myTotal = Math.max(myCounts.reduce((a,b)=>a+b,0), 1);
+    const myPct = myCounts.map(c => Math.round((c / myTotal) * 100));
+
+    window.createPieChart('pieMine', ['New', 'Assigned', 'In Progress', 'Resolved', 'Closed'], myPct, ['#0d6efd', '#ffc107', '#17a2b8', '#28a745', '#6c757d'], 'My Tickets by Status (Percent)', 380, 280);
+</script>
+}

@@ -35,7 +35,7 @@ namespace SupportLink.Data
             modelBuilder.Entity<SupportTicket>()
                 .HasOne(t => t.AssignedAgent)
                 .WithMany(u => u.AssignedTickets)
-                .HasForeignKey(t => t.AssignedAgentId)
+                .HasForeignKey(t => t.AssignedId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // 🔹 Organization -> Tickets
@@ -87,6 +87,13 @@ namespace SupportLink.Data
                 .HasForeignKey(f => f.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // 🔹 Agent specialization -> IssueCategory (optional)
+            modelBuilder.Entity<AccountUser>()
+                .HasOne<IssueCategory>(u => u.SpecializationCategory)
+                .WithMany()
+                .HasForeignKey(u => u.SpecializationCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // 🔹 Save UserRole enum as string instead of int
             modelBuilder.Entity<AccountUser>()
                 .Property(u => u.Role)
@@ -97,8 +104,9 @@ namespace SupportLink.Data
                 new TicketStatus { StatusId = 1, Name = "New", Description = "Ticket just created" },
                 new TicketStatus { StatusId = 2, Name = "Assigned", Description = "Assigned to an agent" },
                 new TicketStatus { StatusId = 3, Name = "InProgress", Description = "Work in progress" },
-                new TicketStatus { StatusId = 4, Name = "Resolved", Description = "Issue resolved" },
-                new TicketStatus { StatusId = 5, Name = "Closed", Description = "Ticket closed" }
+                new TicketStatus { StatusId = 4, Name = "Solved", Description = "Issue Solved" },
+                new TicketStatus { StatusId = 5, Name = "Closed", Description = "Ticket closed" },
+                new TicketStatus { StatusId = 6, Name = "UnAssigned", Description = "Un Assigned to an agent" }
             );
 
             // ✅ Seed IssueCategories
@@ -107,7 +115,8 @@ namespace SupportLink.Data
                 new IssueCategory { CategoryId = 2, Name = "Billing", Description = "Billing and payments" },
                 new IssueCategory { CategoryId = 3, Name = "Account", Description = "Account-related issues" },
                 new IssueCategory { CategoryId = 4, Name = "General Inquiry", Description = "General questions" },
-                new IssueCategory { CategoryId = 5, Name = "Other", Description = "Other types of issues" }
+                new IssueCategory { CategoryId = 5, Name = "World Bank issues", Description = "World Bank questions" },
+                new IssueCategory { CategoryId = 6, Name = "Other", Description = "Other types of issues" }
             );
 
             modelBuilder.Entity<FileType>().HasData(

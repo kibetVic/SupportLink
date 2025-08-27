@@ -4,34 +4,47 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Ticket Update List</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <input type="text" id="memberSearch" class="form-control w-50" placeholder="🔍 Search members by name, phone, or email..." />
+    @* <a asp-action="Create" class="btn btn-success">
+        <i class="fas fa-user-plus"></i> New Update
+    </a> *@
+    @if (!User.IsInRole("Staff"))
+    {
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fas fa-plus-circle"></i> New Update
+        </a>
+    }
+</div>
+<table class="table table-bordered align-middle">
+    <thead class="table-primary">
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Ticket)
+                Ticket Name
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.UpdatedBy)
+                Updated By
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Status)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.UpdatedAt)
+                Updatedn At
             </th>
-            <th></th>
+            @if (!User.IsInRole("Staff"))
+            {
+                <th>Action</th>
+            }
+            
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Ticket.Description)
+                @Html.DisplayFor(modelItem => item.Ticket.TicketName)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.UpdatedBy.Email)
@@ -42,12 +55,26 @@
             <td>
                 @Html.DisplayFor(modelItem => item.UpdatedAt)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
+                @if (!User.IsInRole("Staff"))
+                {
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                }
         </tr>
 }
     </tbody>
 </table>
+<script>
+    document.getElementById('memberSearch').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.table tbody tr');
+
+        rows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>

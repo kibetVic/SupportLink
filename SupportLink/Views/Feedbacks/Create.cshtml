@@ -13,13 +13,19 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="SupportId" class="control-label"></label>
-                <select asp-for="SupportId" class ="form-control" asp-items="ViewBag.SupportId"></select>
+                <label asp-for="SupportId" class="control-label">Ticket Name</label>
+                @if (ViewBag.LockSupport == true)
+                {
+                    <select asp-for="SupportId" class ="form-control" asp-items="ViewBag.SupportId" disabled="disabled"></select>
+                    <input type="hidden" asp-for="SupportId" />
+                    <small class="text-muted">Ticket is preselected from your previous page.</small>
+                }
+                else
+                {
+                    <select asp-for="SupportId" class ="form-control" asp-items="ViewBag.SupportId"></select>
+                }
             </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
-            </div>
+            <!-- User is set automatically -->
             <div class="form-group">
                 <label asp-for="Rating" class="control-label"></label>
                 <input asp-for="Rating" class="form-control" />
@@ -30,19 +36,16 @@
                 <input asp-for="Comments" class="form-control" />
                 <span asp-validation-for="Comments" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
+            <!-- CreatedAt is set automatically -->
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    If you are not satisfied, create new ticket issue <a asp-action="create" asp-controller="SupportTicket">Create new?</a> 
 </div>
 

@@ -46,11 +46,14 @@
         .logo-img {
             display: block;
             margin: 0 auto 20px;
-            width: 70px; 
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #fff;
+            width: 140px;
+            height: auto;
+            border-radius: 12px;
+            object-fit: contain;
+            background: #fff;
+            padding: 6px;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .text-danger {
@@ -76,7 +79,7 @@
 </head>
 <body>
     <div class="register-card">
-        <img src="~/images/Amtech.png" alt="Amtech" class="logo-img" />
+        <img src="~/images/Amtech.jfif" alt="Amtech" class="logo-img" />
         <h2 class="mb-4 text-primary form-title">Log in to Account</h2>
 
         <form asp-action="Login" method="post" class="row g-3" id="loginForm">

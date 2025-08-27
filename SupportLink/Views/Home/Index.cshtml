@@ -18,12 +18,15 @@
                     <hr />
 
                     <div class="d-flex justify-content-center gap-3">
-                        <a href="/SupportTicket" class="btn btn-outline-primary btn-lg">
-                            <i class="bi bi-ticket"></i> Manage Tickets
+                        <a asp-controller="SupportTickets" asp-action="Index" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-ticket"></i> View Tickets
                         </a>
-                        <a href="/Account/Logout" class="btn btn-danger btn-lg">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </a>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

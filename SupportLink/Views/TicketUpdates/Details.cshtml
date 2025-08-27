@@ -1,42 +1,49 @@
 ﻿@model SupportLink.Models.TicketUpdate
 
 @{
-    ViewData["Title"] = "Details";
+	ViewData["Title"] = "Update Details";
 }
 
-<h1>Details</h1>
+<div class="container-fluid">
+	<div class="row mb-4">
+		<div class="col-12 d-flex justify-content-between align-items-center">
+			<h1 class="h3 mb-0">
+				<i class="fas fa-info-circle text-primary me-2"></i>
+				Update Details #@Model.Id
+			</h1>
+			<div class="d-flex gap-2">
+				<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+					<i class="fas fa-edit me-2"></i>Edit
+				</a>
+				<a asp-action="Index" class="btn btn-outline-secondary">
+					<i class="fas fa-arrow-left me-2"></i>Back to List
+				</a>
+			</div>
+		</div>
+	</div>
 
-<div>
-    <h4>TicketUpdate</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedBy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedBy.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+	<div class="row">
+		<div class="col-lg-8">
+			<div class="card shadow-sm border-0">
+				<div class="card-header bg-white border-bottom">
+					<h5 class="mb-0 text-dark"><i class="fas fa-ticket-alt me-2 text-primary"></i>Update Information</h5>
+				</div>
+				<div class="card-body">
+					<dl class="row mb-0">
+						<dt class="col-sm-4">Ticket Name</dt>
+						<dd class="col-sm-8">@(Model.Ticket?.TicketName ?? "N/A")</dd>
+
+						<dt class="col-sm-4">Updated By</dt>
+						<dd class="col-sm-8">@(Model.UpdatedBy?.Email ?? "N/A")</dd>
+
+						<dt class="col-sm-4">Status</dt>
+						<dd class="col-sm-8">@Model.Status</dd>
+
+						<dt class="col-sm-4">Updated At</dt>
+						<dd class="col-sm-8">@Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

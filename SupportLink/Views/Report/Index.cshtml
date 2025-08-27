@@ -1,0 +1,154 @@
+﻿@model IEnumerable<SupportLink.Models.Report>
+@using System.IO
+
+@{
+    ViewData["Title"] = "Ticket Reports";
+}
+
+<style>
+    .table tr {
+        font-size: 12px;
+    }
+</style>
+
+<h2>Ticket Reports</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <input type="text" id="reportSearch" class="form-control w-50" placeholder="🔍 Search by organization, category, status, or agent..." />   
+</div>
+<div class="mb-3">
+    <button id="exportCsvBtn" class="btn btn-success btn-sm">📄 Export to CSV</button>
+    <button id="exportPdfBtn" class="btn btn-danger btn-sm">📝 Export to PDF</button>
+</div>
+<table class="table table-bordered align-middle">
+    <thead class="table-primary">
+        <tr>
+            <th>No.</th>
+            @* <th>Ticket</th> *@
+            <th>Description</th>
+            <th>Organization</th>
+            <th>Created By</th>
+            <th>Assigned Agent</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Resolved</th>
+            <th>Feedback</th>
+            <th>Last Update</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.TicketId</td>
+                    @* <td>@r.TicketName</td> *@
+                    <td>@r.Description</td>
+                    <td>@r.OrganizationName</td>
+                    <td>@r.CreatedByEmail</td>
+                    <td>@r.AssignedAgentEmail</td>
+                    <td>@r.CategoryName</td>
+                    <td>@r.StatusName</td>
+                    <td>@r.CreatedAt.ToShortDateString()</td>
+                    <td>@(r.ResolvedAt?.ToShortDateString() ?? "-")</td>
+                    <td>@(!string.IsNullOrEmpty(r.FeedbackComments) ? r.FeedbackComments : "No Feedback")</td>
+                    <td>@(r.LastUpdatedAt?.ToShortDateString() ?? "No Updates")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="11" class="text-center text-muted">No reports found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Include jsPDF library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    // Export table to CSV with row numbers
+    function exportTableToCSV(filename = 'TicketReports.csv') {
+        const rows = document.querySelectorAll('table tr');
+        let csvContent = [];
+        let rowNumber = 1;
+
+        rows.forEach((row, index) => {
+            const cells = Array.from(row.querySelectorAll('th, td'));
+            const rowData = cells.map((cell, cellIndex) => {
+                // Add "#" column at first index for data rows only
+                if (index > 0 && cellIndex === 0) return `"${rowNumber++}"`;
+                return `"${cell.innerText.replace(/"/g, '""')}"`;
+            });
+            if (index > 0) {
+                rowData.unshift(`"${rowNumber - 1}"`); // prepend row number
+            } else {
+                rowData.unshift("#"); // header
+            }
+            csvContent.push(rowData.join(","));
+        });
+
+        const csvBlob = new Blob([csvContent.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(csvBlob);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Export table to PDF with row numbers
+    function exportTableToPDF(filename = 'TicketReports.pdf') {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'pt', 'a4'); // Landscape, points, A4
+
+        doc.setFontSize(12);
+        doc.text("Ticket Reports", 40, 40);
+
+        // Build rows with row numbers
+        const table = document.querySelector('table');
+        const headers = Array.from(table.querySelectorAll('thead tr th'));
+        const bodyRows = Array.from(table.querySelectorAll('tbody tr'));
+
+        const head = [["#"].concat(headers.map(h => h.innerText))];
+        const body = bodyRows.map((row, index) => {
+            const cells = Array.from(row.querySelectorAll('td')).map(cell => cell.innerText);
+            return [index + 1].concat(cells);
+        });
+
+        doc.autoTable({
+            head: head,
+            body: body,
+            startY: 60,
+            theme: 'grid',
+            headStyles: { fillColor: [52, 73, 94], textColor: 255, fontSize: 10 },
+            bodyStyles: { fontSize: 9 }
+        });
+
+        doc.save(filename);
+    }
+
+    // Attach functions to buttons
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('exportCsvBtn').addEventListener('click', () => exportTableToCSV());
+        document.getElementById('exportPdfBtn').addEventListener('click', () => exportTableToPDF());
+    });
+</script>
+
+
+<script>
+    document.getElementById('reportSearch').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.table tbody tr');
+
+        rows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>

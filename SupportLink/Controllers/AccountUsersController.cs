@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SupportLink.Data;
 using SupportLink.Models;
@@ -34,14 +35,30 @@ namespace SupportLink.Controllers
         // REGISTER
         // ==========================
         [HttpGet]
-        public IActionResult Register() => View();
+        //public IActionResult Register() => View();
+        public IActionResult Register()
+        {
+            ViewBag.Organizations = new SelectList(_context.Organizations.AsNoTracking(), "Id", "OrganizationName");
+            return View();
+        }
+
+        //public IActionResult Register()
+        //{
+        //    ViewBag.OrganizationId = new SelectList(_context.Organizations, "Id", "OrganizationName");
+        //    return View();
+        //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Register(AccountUser model)
         {
+            //if (!ModelState.IsValid)
+            //    return View(model);
             if (!ModelState.IsValid)
+            {
+                ViewBag.Organizations = new SelectList(_context.Organizations.AsNoTracking(), "Id", "OrganizationName", model.OrganizationId);
                 return View(model);
+            }
 
             // check if email already exists
             if (_context.Users.Any(u => u.Email == model.Email))
@@ -75,6 +92,7 @@ namespace SupportLink.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Error saving user: " + ex.InnerException?.Message ?? ex.Message);
+                ViewBag.Organizations = new SelectList(_context.Organizations.AsNoTracking(), "Id", "OrganizationName", model.OrganizationId);
                 return View(model);
             }
         }
@@ -104,8 +122,9 @@ namespace SupportLink.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Role, user.Role.ToString()), // use enum value
-                    new Claim(ClaimTypes.Email, user.Email)
+                    new Claim(ClaimTypes.Role, user.Role.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim("UserId", user.UserId.ToString())
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -128,8 +147,25 @@ namespace SupportLink.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(string userName = null)
         {
+            // Get the current user's username from claims if not provided as parameter
+            var username = !string.IsNullOrEmpty(userName) ? userName : User.Identity?.Name;
+            
+            if (!string.IsNullOrEmpty(username))
+            {
+                // Get the user by username from database
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+                
+                if (user != null)
+                {
+                    // You can log the logout action or perform any other operations here
+                    // For example, log the logout time, update last activity, etc.
+                    // user.LastLogoutAt = DateTime.UtcNow;
+                    // await _context.SaveChangesAsync();
+                }
+            }
+            
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Account");
         }
@@ -163,23 +199,33 @@ namespace SupportLink.Controllers
         // ==========================
         // CRUD: AccountUser
         // ==========================
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Index() => View(await _context.Users.ToListAsync());
+        [Authorize(Roles = "Admin,HelpDesk")]
+        public async Task<IActionResult> Index() => View(await _context.Users
+            .Include(u => u.SpecializationCategory)
+            .Include(u => u.Organization)
+            .ToListAsync());
 
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var accountUser = await _context.Users.FirstOrDefaultAsync(m => m.UserId == id);
+            var accountUser = await _context.Users
+                .Include(u => u.Organization)
+                .FirstOrDefaultAsync(m => m.UserId == id);
             if (accountUser == null) return NotFound();
             return View(accountUser);
         }
 
-        [Authorize(Roles = "Admin")]
-        public IActionResult Create() => View();
+        [Authorize(Roles = "Admin,HelpDesk")]
+        //public IActionResult Create() => View();
+        public IActionResult Create()
+        {
+            ViewBag.Organizations = new SelectList(_context.Organizations.AsNoTracking(), "Id", "OrganizationName");
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,HelpDesk")]
         public async Task<IActionResult> Create(AccountUser accountUser)
         {
             if (ModelState.IsValid)
@@ -194,32 +240,74 @@ namespace SupportLink.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewBag.Categories = new SelectList(_context.IssueCategories, "CategoryId", "CategoryName");
+            ViewBag.Organizations = new SelectList(_context.Organizations.AsNoTracking(), "Id", "OrganizationName", accountUser.OrganizationId);
             return View(accountUser);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,HelpDesk")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
             var accountUser = await _context.Users.FindAsync(id);
             if (accountUser == null) return NotFound();
+            ViewBag.Categories = new SelectList(await _context.IssueCategories.AsNoTracking().ToListAsync(), "CategoryId", "Name", accountUser.SpecializationCategoryId);
+            ViewBag.Organizations = new SelectList(await _context.Organizations.AsNoTracking().ToListAsync(), "Id", "OrganizationName", accountUser.OrganizationId);
             return View(accountUser);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,HelpDesk")]
         public async Task<IActionResult> Edit(int id, AccountUser accountUser)
         {
             if (id != accountUser.UserId) return NotFound();
 
+            // If password fields are left blank, keep existing password and bypass validation
+            bool isPasswordProvided = !string.IsNullOrWhiteSpace(accountUser.Password) || !string.IsNullOrWhiteSpace(accountUser.ConfirmPassword);
+            if (!isPasswordProvided)
+            {
+                ModelState.Remove("Password");
+                ModelState.Remove("ConfirmPassword");
+            }
+            else if (accountUser.Password != accountUser.ConfirmPassword)
+            {
+                ModelState.AddModelError("ConfirmPassword", "Passwords do not match!");
+            }
+
             if (ModelState.IsValid)
             {
+                var existing = await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+                if (existing == null) return NotFound();
+
+                existing.UserName = accountUser.UserName;
+                existing.Email = accountUser.Email;
+                existing.OrganizationId = accountUser.OrganizationId;
+                if (Enum.IsDefined(typeof(UserRole), accountUser.Role))
+                {
+                    existing.Role = accountUser.Role;
+                }
+
+                // Only agents can have a specialization; clear it for others
+                if (existing.Role == UserRole.Agent ||
+                    existing.Role == UserRole.Admin ||
+                    existing.Role == UserRole.WBD ||
+                    existing.Role == UserRole.HelpDesk)
+                {
+                    existing.SpecializationCategoryId = accountUser.SpecializationCategoryId;
+                }
+                else
+                {
+                    existing.SpecializationCategoryId = null;
+                }
+
+                if (isPasswordProvided)
+                {
+                    existing.Password = HashPassword(accountUser.Password);
+                }
+
                 try
                 {
-                    // prevent confirm password persistence
-                    accountUser.ConfirmPassword = null;
-                    _context.Update(accountUser);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -229,6 +317,9 @@ namespace SupportLink.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            // Do not echo password back
+            accountUser.Password = string.Empty;
+            accountUser.ConfirmPassword = string.Empty;
             return View(accountUser);
         }
 

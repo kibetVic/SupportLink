@@ -1,0 +1,71 @@
+@model SupportLink.Models.DashboardViewModel
+
+@{
+	ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2>Admin Dashboard</h2>
+
+<div class="row">
+	<div class="col-md-3">
+		<div class="card text-bg-primary mb-3">
+			<div class="card-body">
+				<h5 class="card-title">Incoming (New)</h5>
+				<p class="card-text display-6">@Model.NewCount</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-bg-warning mb-3">
+			<div class="card-body">
+				<h5 class="card-title">In Progress</h5>
+				<p class="card-text display-6">@Model.InProgressCount</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-bg-success mb-3">
+			<div class="card-body">
+				<h5 class="card-title">Solved</h5>
+				<p class="card-text display-6">@Model.SolvedCount</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card text-bg-danger mb-3">
+			<div class="card-body">
+				<h5 class="card-title">Unsolved</h5>
+				<p class="card-text display-6">@Model.UnsolvedCount</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-6">
+		<canvas id="pieSolved"></canvas>
+	</div>
+	<div class="col-md-6">
+		<canvas id="pieStatus"></canvas>
+	</div>
+</div>
+
+@section Scripts {
+<script>
+    const solved = @Model.SolvedCount;
+    const unsolved = @Model.UnsolvedCount;
+    const totalSolved = Math.max(solved + unsolved, 1);
+    const solvedPct = Math.round((solved / totalSolved) * 100);
+    const unsolvedPct = 100 - solvedPct;
+
+    const statusCounts = [@Model.NewCount, @Model.AssignedCount, @Model.InProgressCount, @Model.ResolvedCount, @Model.ClosedCount];
+    const totalStatus = Math.max(statusCounts.reduce((a,b)=>a+b,0), 1);
+    const statusPct = statusCounts.map(c => Math.round((c / totalStatus) * 100));
+
+    window.createPieChart('pieSolved', ['Solved', 'Unsolved'], [solvedPct, unsolvedPct], ['#28a745', '#dc3545'], 'Solved vs Unsolved (Percent)', 380, 280);
+
+    window.createPieChart('pieStatus', ['New', 'Assigned', 'In Progress', 'Resolved', 'Closed'], statusPct, ['#0d6efd', '#ffc107', '#17a2b8', '#28a745', '#6c757d'], 'Tickets by Status (Percent)', 380, 280);
+</script>
+}
+
+

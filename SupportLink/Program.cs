@@ -2,11 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 using SupportLink.Data;
 using SupportLink.Models;
+using SupportLink.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using SupportLink.Data;
+using SupportLink.Models;
+using SupportLink.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddTransient<SupportLink.Services.IEmailService, SupportLink.Services.SmtpEmailService>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddTransient<SupportLink.Services.SmtpEmailService>();
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddTransient<IEmailService, SmtpEmailService>();
+builder.Services.AddTransient<SmtpEmailService>();
 
 // Register DbContext
 builder.Services.AddDbContext<SupportLinkDbContext>(options =>
@@ -35,6 +46,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddScoped<ReportService>();
+
 // ✅ Register HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
@@ -46,36 +59,6 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-
-// Ensure database is created and migrations are applied on startup
-//using (var scope = app.Services.CreateScope())
-//{
-//    var db = scope.ServiceProvider.GetRequiredService<SupportLinkDbContext>();
-//    db.Database.Migrate();
-
-//    // Seed minimal data for Users and Organizations if empty
-//    if (!db.Organizations.Any())
-//    {
-//        db.Organizations.Add(new Organization
-//        {
-//            OrganizationCode = "ORG-001",
-//            OrganizationName = "Default Organization"
-//        });
-//        db.SaveChanges();
-//    }
-
-//    if (!db.Users.Any())
-//    {
-//        db.Users.Add(new AccountUser
-//        {
-//            UserName = "Default Staff",
-//            Email = "staff@example.com",
-//            Password = "Password123!",
-//            Role = UserRole.Staff
-//        });
-//        db.SaveChanges();
-//    }
-//}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

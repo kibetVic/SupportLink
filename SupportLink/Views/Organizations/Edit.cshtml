@@ -1,46 +1,76 @@
 ﻿@model SupportLink.Models.Organization
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Organization";
 }
 
-<h1>Edit</h1>
-
-<h4>Organization</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="OrganizationCode" class="control-label"></label>
-                <input asp-for="OrganizationCode" class="form-control" />
-                <span asp-validation-for="OrganizationCode" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OrganizationName" class="control-label"></label>
-                <input asp-for="OrganizationName" class="form-control" />
-                <span asp-validation-for="OrganizationName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PhoneNumber" class="control-label"></label>
-                <input asp-for="PhoneNumber" class="form-control" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-building text-primary me-2"></i>
+                Edit Organization for @Model.OrganizationName
+            </h1>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 text-dark"><i class="fas fa-id-card me-2 text-primary"></i>Organization Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="OrganizationCode" class="form-control" />
+                                    <label asp-for="OrganizationCode" class="form-label">Code</label>
+                                    <span asp-validation-for="OrganizationCode" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="OrganizationName" class="form-control" />
+                                    <label asp-for="OrganizationName" class="form-label">Name</label>
+                                    <span asp-validation-for="OrganizationName" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input asp-for="Address" class="form-control" />
+                                    <label asp-for="Address" class="form-label">Address</label>
+                                    <span asp-validation-for="Address" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="PhoneNumber" class="form-control" />
+                                    <label asp-for="PhoneNumber" class="form-label">Phone</label>
+                                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 

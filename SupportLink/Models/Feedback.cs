@@ -10,11 +10,11 @@ namespace SupportLink.Models
 
         // Linked Ticket
         public int SupportId { get; set; }
-        public virtual SupportTicket Ticket { get; set; }
+        public virtual SupportTicket? Ticket { get; set; }
 
         // Who gave feedback
         public int UserId { get; set; }
-        public virtual AccountUser User { get; set; }
+        public virtual AccountUser? User { get; set; }
 
         [Range(1, 5)]
         public int Rating { get; set; }

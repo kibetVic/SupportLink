@@ -1,76 +1,126 @@
 ﻿@model SupportLink.Models.SupportTicket
 
 @{
-    ViewData["Title"] = "Edit";
+	ViewData["Title"] = "Edit Ticket";
 }
 
-<h1>Edit</h1>
+@if (TempData["SuccessMessage"] != null)
+{
+	<div class="alert alert-success">
+		@TempData["SuccessMessage"]
+	</div>
+}
 
-<h4>SupportTicket</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="SupportId" />
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OrganizationId" class="control-label"></label>
-                <select asp-for="OrganizationId" class="form-control" asp-items="ViewBag.OrganizationId"></select>
-                <span asp-validation-for="OrganizationId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FileType" class="control-label"></label>
-                <input asp-for="FileType" class="form-control" />
-                <span asp-validation-for="FileType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UploadFile" class="control-label"></label>
-                <input asp-for="UploadFile" class="form-control" />
-                <span asp-validation-for="UploadFile" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StatusId" class="control-label"></label>
-                <select asp-for="StatusId" class="form-control" asp-items="ViewBag.StatusId"></select>
-                <span asp-validation-for="StatusId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="AssignedAgentId" class="control-label"></label>
-                <select asp-for="AssignedAgentId" class="form-control" asp-items="ViewBag.AssignedAgentId"></select>
-                <span asp-validation-for="AssignedAgentId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ResolvedAt" class="control-label"></label>
-                <input asp-for="ResolvedAt" class="form-control" />
-                <span asp-validation-for="ResolvedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
+@if (TempData["ErrorMessage"] != null)
+{
+	<div class="alert alert-danger">
+		@TempData["ErrorMessage"]
+	</div>
+}
 
-<div>
-    <a asp-action="Index">Back to List</a>
+
+<div class="container-fluid">
+	<div class="row mb-4">
+		<div class="col-12 d-flex justify-content-between align-items-center">
+			<h1 class="h3 mb-0">
+				<i class="fas fa-edit text-primary me-2"></i>
+				Edit Ticket 
+			</h1>
+			<a asp-action="Index" class="btn btn-outline-secondary">
+				<i class="fas fa-arrow-left me-2"></i>Back to List
+			</a>
+		</div>
+	</div>
+
+	<div class="row justify-content-center">
+		<div class="col-lg-8">
+			<div class="card shadow-sm border-0">
+				<div class="card-header bg-white border-bottom">
+					<h5 class="mb-0 text-dark"><i class="fas fa-ticket-alt me-2 text-primary"></i>Ticket Information</h5>
+				</div>
+				<div class="card-body p-4">
+					<form asp-action="Edit">
+						<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+						<input type="hidden" asp-for="SupportId" />
+						<input type="hidden" asp-for="UserId" />
+
+						<div class="row g-3">
+							<!-- TicketName -->
+							<div class="col-6">
+								<div class="form-floating">
+									<input asp-for="TicketName" class="form-control"/>
+									<label asp-for="TicketName" class="form-label">Ticket Name</label>
+									<span asp-validation-for="TicketName" class="text-danger small"></span>
+								</div>
+							</div>
+
+							<div class="col-md-6">
+								<div class="form-floating">
+									<select asp-for="OrganizationId" class="form-select" asp-items="ViewBag.OrganizationId"></select>
+									<label asp-for="OrganizationId" class="form-label">Organization</label>
+									<span asp-validation-for="OrganizationId" class="text-danger small"></span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-floating">
+									<select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId"></select>
+									<label asp-for="CategoryId" class="form-label">Category</label>
+									<span asp-validation-for="CategoryId" class="text-danger small"></span>
+								</div>
+							</div>
+
+							<div class="col-md-6">
+								<div class="form-floating">
+									<select asp-for="StatusId" class="form-select" asp-items="ViewBag.StatusId"></select>
+									<label asp-for="StatusId" class="form-label">Status</label>
+									<span asp-validation-for="StatusId" class="text-danger small"></span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-floating">
+									<select asp-for="AssignedId" class="form-select" asp-items="ViewBag.AssignedId"></select>
+									<label asp-for="AssignedId" class="form-label">Assigned Agent</label>
+									<span asp-validation-for="AssignedId" class="text-danger small"></span>
+								</div>
+							</div>
+
+							<div class="col-12">
+								<div class="form-floating">
+									<textarea asp-for="Description" class="form-control" style="height:120px"></textarea>
+									<label asp-for="Description" class="form-label">Description</label>
+									<span asp-validation-for="Description" class="text-danger small"></span>
+								</div>
+							</div>
+
+							<div class="col-md-12">
+								<div class="form-floating">
+									<input asp-for="UploadFile" class="form-control" />
+									<label asp-for="UploadFile" class="form-label">Attachment (path)</label>
+									<span asp-validation-for="UploadFile" class="text-danger small"></span>
+								</div>
+							</div>
+
+							<div class="col-md-6">
+								<div class="form-floating">
+									<input asp-for="CreatedAt" class="form-control" />
+									<label asp-for="CreatedAt" class="form-label">Created At</label>
+									<span asp-validation-for="CreatedAt" class="text-danger small"></span>
+								</div>
+							</div>
+						</div>
+
+						<div class="d-flex justify-content-end gap-2 mt-4">
+							<a asp-action="Index" class="btn btn-outline-secondary">
+								<i class="fas fa-times me-2"></i>Cancel
+							</a>
+							<button type="submit" class="btn btn-primary">
+								<i class="fas fa-save me-2"></i>Save Changes
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
